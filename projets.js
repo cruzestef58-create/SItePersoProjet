@@ -39,7 +39,7 @@ const PROJETS = [
     // le "?v=2" force le navigateur a retelecharger la nouvelle version du jeu
     // au lieu de ressortir l'ancienne de son cache. Augmente le numero a chaque
     // fois que tu remplaces le .exe par une version plus recente.
-    lien: "telechargements/Abysse.exe?v=2",
+    lien: "telechargements/Abysse.exe?v=3",
     tags: ["Windows", "Roguelite", "Solo", "14 Mo"],
     vedette: true,
     annee: "2026",
