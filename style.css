@@ -1,0 +1,253 @@
+/* =========================================================================
+   Cruz — Mes projets
+   Palette : fuchsia -> rouge, sur fond très clair (ou très sombre).
+   ========================================================================= */
+
+:root{
+  --fuchsia:#E01A76;
+  --rouge:#F0334A;
+  --grad:linear-gradient(115deg,var(--fuchsia),var(--rouge));
+
+  --bg:#FFFFFF;
+  --bg-doux:#FBF8FA;
+  --surface:#FFFFFF;
+  --bord:#EDE4E9;
+  --bord-fort:#E0D2DA;
+  --texte:#180F14;
+  --texte-doux:#6B5A63;
+  --ombre:0 1px 2px rgba(24,15,20,.04), 0 8px 24px -12px rgba(24,15,20,.10);
+  --ombre-forte:0 2px 4px rgba(224,26,118,.06), 0 24px 48px -20px rgba(224,26,118,.28);
+
+  --r:16px;
+  --max:1120px;
+  --police:"Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+}
+
+html[data-theme="sombre"]{
+  --bg:#100A0D;
+  --bg-doux:#160E12;
+  --surface:#1A1015;
+  --bord:#2C1D25;
+  --bord-fort:#3A2731;
+  --texte:#F7F0F3;
+  --texte-doux:#AE9BA5;
+  --ombre:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  --ombre-forte:0 2px 4px rgba(0,0,0,.4), 0 24px 48px -20px rgba(224,26,118,.45);
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:var(--police);
+  background:var(--bg);
+  color:var(--texte);
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:inherit;text-decoration:none}
+h1,h2,h3{margin:0;line-height:1.15;letter-spacing:-.02em}
+
+.wrap{max-width:var(--max);margin:0 auto;padding:0 24px}
+.grad{
+  background:var(--grad);
+  -webkit-background-clip:text;background-clip:text;
+  color:transparent;
+}
+
+/* ----------------------------- BARRE DU HAUT ----------------------------- */
+.topbar{
+  position:sticky;top:0;z-index:50;
+  background:color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter:saturate(180%) blur(14px);
+  border-bottom:1px solid var(--bord);
+}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:-.02em}
+.logo-mark{
+  width:30px;height:30px;border-radius:9px;background:var(--grad);
+  color:#fff;display:grid;place-items:center;font-size:15px;font-weight:800;
+  box-shadow:0 4px 12px -4px rgba(224,26,118,.7);
+}
+.logo-text{font-size:17px}
+.logo-dot{color:var(--fuchsia)}
+.topnav{display:flex;align-items:center;gap:22px}
+.topnav a{font-size:14.5px;color:var(--texte-doux);font-weight:500;transition:color .15s}
+.topnav a:hover{color:var(--fuchsia)}
+.icon-btn{
+  width:34px;height:34px;border-radius:10px;border:1px solid var(--bord);
+  background:var(--surface);color:var(--texte-doux);cursor:pointer;
+  display:grid;place-items:center;font-size:15px;transition:.15s;
+}
+.icon-btn:hover{border-color:var(--fuchsia);color:var(--fuchsia)}
+
+/* ------------------------------- EN-TÊTE -------------------------------- */
+.hero{
+  position:relative;overflow:hidden;
+  padding:82px 0 56px;
+  border-bottom:1px solid var(--bord);
+  background:var(--bg-doux);
+}
+.hero::before{
+  content:"";position:absolute;inset:-40% 0 auto 0;height:420px;pointer-events:none;
+  background:radial-gradient(60% 100% at 50% 0%, rgba(224,26,118,.16), transparent 70%);
+}
+.hero .wrap{position:relative}
+.eyebrow{
+  margin:0 0 16px;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--fuchsia);
+}
+.hero h1{font-size:clamp(38px,6.4vw,64px);font-weight:800}
+.lede{
+  margin:22px 0 0;max-width:56ch;font-size:17px;color:var(--texte-doux);
+}
+.stats{display:flex;flex-wrap:wrap;gap:28px;margin-top:34px}
+.stat b{display:block;font-size:26px;font-weight:800;letter-spacing:-.02em}
+.stat span{font-size:13px;color:var(--texte-doux)}
+
+/* ------------------------------- FILTRES -------------------------------- */
+.toolbar{
+  display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;
+  padding-top:36px;padding-bottom:24px;scroll-margin-top:80px;
+}
+.search{position:relative;flex:1 1 260px;max-width:340px}
+.search-icon{
+  position:absolute;left:14px;top:50%;transform:translateY(-50%);
+  color:var(--texte-doux);font-size:17px;pointer-events:none;
+}
+.search input{
+  width:100%;padding:11px 14px 11px 38px;
+  border:1px solid var(--bord);border-radius:12px;
+  background:var(--surface);color:var(--texte);
+  font-family:inherit;font-size:14.5px;outline:none;transition:.15s;
+}
+.search input:focus{border-color:var(--fuchsia);box-shadow:0 0 0 3px rgba(224,26,118,.13)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{
+  padding:8px 15px;border-radius:999px;border:1px solid var(--bord);
+  background:var(--surface);color:var(--texte-doux);
+  font-family:inherit;font-size:13.5px;font-weight:500;cursor:pointer;transition:.15s;
+}
+.chip:hover{border-color:var(--bord-fort);color:var(--texte)}
+.chip.actif{
+  background:var(--grad);border-color:transparent;color:#fff;font-weight:600;
+  box-shadow:0 6px 16px -8px rgba(224,26,118,.8);
+}
+
+/* -------------------------------- CARTES -------------------------------- */
+.grille{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));
+  gap:22px;padding-bottom:72px;
+}
+.carte{
+  display:flex;flex-direction:column;overflow:hidden;
+  background:var(--surface);border:1px solid var(--bord);border-radius:var(--r);
+  box-shadow:var(--ombre);
+  transition:transform .22s cubic-bezier(.2,.7,.3,1), box-shadow .22s, border-color .22s;
+}
+.carte:hover{transform:translateY(-4px);border-color:var(--fuchsia);box-shadow:var(--ombre-forte)}
+
+.cover{
+  position:relative;height:132px;display:grid;place-items:center;
+  font-size:50px;line-height:1;user-select:none;
+}
+.cover::after{
+  content:"";position:absolute;inset:0;
+  background:radial-gradient(120% 90% at 50% 120%, rgba(255,255,255,.22), transparent 60%);
+}
+.badge{
+  position:absolute;top:11px;right:11px;z-index:2;
+  padding:4px 10px;border-radius:999px;
+  background:rgba(255,255,255,.92);color:#180F14;
+  font-size:11px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;
+}
+.carte-corps{padding:18px 18px 20px;display:flex;flex-direction:column;gap:10px;flex:1}
+.carte-corps h3{font-size:18px;font-weight:700}
+.carte-corps p{margin:0;font-size:14px;color:var(--texte-doux);flex:1}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{
+  padding:3px 9px;border-radius:6px;border:1px solid var(--bord);
+  font-size:11.5px;color:var(--texte-doux);background:var(--bg-doux);
+}
+.actions{display:flex;gap:8px;margin-top:4px}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  padding:10px 16px;border-radius:10px;border:1px solid transparent;
+  font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;
+  transition:.15s;white-space:nowrap;
+}
+.btn-primaire{background:var(--grad);color:#fff;box-shadow:0 8px 18px -10px rgba(224,26,118,.9)}
+.btn-primaire:hover{filter:brightness(1.07);transform:translateY(-1px)}
+.btn-fantome{background:transparent;border-color:var(--bord);color:var(--texte-doux)}
+.btn-fantome:hover{border-color:var(--fuchsia);color:var(--fuchsia)}
+.btn.large{flex:1}
+
+/* Carte mise en avant */
+.carte.vedette{grid-column:span 2;flex-direction:row}
+.carte.vedette .cover{height:auto;width:44%;flex-shrink:0;font-size:76px}
+.carte.vedette .carte-corps{padding:28px 26px;gap:12px;justify-content:center}
+.carte.vedette h3{font-size:26px}
+.carte.vedette p{font-size:15px;flex:0}
+
+.vide{text-align:center;color:var(--texte-doux);padding:40px 0 80px}
+
+/* ------------------------------- À PROPOS ------------------------------- */
+.apropos{border-top:1px solid var(--bord);background:var(--bg-doux);padding:64px 0}
+.apropos-inner{max-width:660px}
+.apropos h2{font-size:28px;font-weight:800;margin-bottom:16px}
+.apropos p{color:var(--texte-doux);margin:0 0 14px;font-size:15.5px}
+.apropos-note{
+  border-left:3px solid var(--fuchsia);padding-left:14px;
+  color:var(--texte)!important;font-weight:500;
+}
+
+.footer{border-top:1px solid var(--bord);padding:26px 0;font-size:13.5px;color:var(--texte-doux)}
+.footer-inner{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.footer-sep{opacity:.4}
+
+/* ------------------------------- MODALE --------------------------------- */
+.modale{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:20px}
+.modale-fond{position:absolute;inset:0;background:rgba(16,10,13,.62);backdrop-filter:blur(4px);animation:fade .2s}
+.modale-boite{
+  position:relative;z-index:1;width:min(520px,100%);max-height:88vh;overflow:auto;
+  background:var(--surface);border:1px solid var(--bord);border-radius:20px;
+  box-shadow:0 40px 80px -30px rgba(0,0,0,.55);
+  animation:pop .22s cubic-bezier(.2,.8,.3,1);
+}
+@keyframes fade{from{opacity:0}}
+@keyframes pop{from{opacity:0;transform:translateY(14px) scale(.97)}}
+.modale-cover{height:150px;display:grid;place-items:center;font-size:62px;line-height:1}
+.modale-fermer{
+  position:absolute;top:12px;right:12px;z-index:2;
+  width:32px;height:32px;border-radius:50%;border:0;cursor:pointer;
+  background:rgba(255,255,255,.9);color:#180F14;font-size:14px;
+}
+.modale-fermer:hover{background:#fff}
+.modale-corps{padding:24px}
+.modale-corps h3{font-size:24px;font-weight:800;margin-bottom:12px}
+.modale-corps>p{color:var(--texte-doux);font-size:15px;margin:14px 0 18px}
+.encart{
+  background:var(--bg-doux);border:1px solid var(--bord);border-left:3px solid var(--fuchsia);
+  border-radius:10px;padding:14px 16px;margin-bottom:18px;
+}
+.encart strong{font-size:13px;display:block;margin-bottom:4px}
+.encart p{margin:0;font-size:13.5px;color:var(--texte-doux)}
+#modale-action{width:100%}
+
+/* ------------------------------ RESPONSIVE ------------------------------ */
+@media (max-width:900px){
+  .carte.vedette{grid-column:span 1;flex-direction:column}
+  .carte.vedette .cover{width:100%;height:150px;font-size:60px}
+  .carte.vedette .carte-corps{padding:20px}
+  .carte.vedette h3{font-size:21px}
+}
+@media (max-width:640px){
+  .wrap{padding:0 18px}
+  .hero{padding:56px 0 44px}
+  .topnav a{display:none}
+  .toolbar{gap:12px}
+  .search{max-width:none}
+  .stats{gap:22px}
+  .grille{grid-template-columns:1fr;gap:18px}
+}

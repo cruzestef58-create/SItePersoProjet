@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QUEL AGENT VALORANT ES-TU ?</title>
+<link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+
+<main class="wrap">
+
+  <!-- ============ ECRAN 0 : CHOIX DU JEU ============ -->
+  <section id="screen-jeu" class="screen active">
+    <div class="logo-line"></div>
+    <p class="kicker">CHOISIS TON JEU</p>
+    <h1 class="title">QUEL PERSONNAGE<br><span class="title-accent">ES-TU</span>&nbsp;?</h1>
+    <p class="subtitle">Deux univers, deux séries de tests.<br>Le site change entièrement d'ambiance selon ton choix.</p>
+
+    <div class="games">
+      <button class="game game-valorant" id="jeu-valorant">
+        <span class="game-tag">TACTICAL SHOOTER</span>
+        <span class="game-title">VALORANT</span>
+        <span class="game-desc">25 agents. Duellistes, initiateurs, contrôleurs, sentinelles.</span>
+        <span class="game-go">ENTRER ›</span>
+      </button>
+      <button class="game game-lol" id="jeu-lol">
+        <span class="game-tag">MOBA</span>
+        <span class="game-title">LEAGUE OF LEGENDS</span>
+        <span class="game-desc">Tous les champions du jeu, chargés en direct depuis Riot.</span>
+        <span class="game-go">ENTRER ›</span>
+      </button>
+    </div>
+    <p class="game-erreur" id="jeu-erreur" hidden></p>
+  </section>
+
+  <!-- ============ ECRAN 1 : INTRO ============ -->
+  <section id="screen-intro" class="screen">
+    <div class="logo-line"></div>
+    <p class="kicker">PROTOCOLE D'IDENTIFICATION // AGENT</p>
+    <h1 class="title">
+      QUEL AGENT<br>
+      <span class="title-accent">VALORANT</span><br>
+      ES-TU&nbsp;?
+    </h1>
+    <p class="subtitle">
+      Deux tests différents : celui qui te <b>ressemble</b>, et celui que tu <b>devrais jouer</b>.<br>
+      Fais les deux, ce n'est presque jamais le même agent.
+    </p>
+
+    <div class="input-box">
+      <label for="pseudo">TON PSEUDO</label>
+      <input type="text" id="pseudo" maxlength="16" placeholder="Entre ton nom d'agent..." autocomplete="off">
+    </div>
+
+    <div class="modes">
+      <button class="mode" id="mode-perso">
+        <span class="mode-tag">TEST 1 — PERSONNALITÉ</span>
+        <span class="mode-title">QUEL AGENT<br>TE RESSEMBLE&nbsp;?</span>
+        <span class="mode-desc">Ton caractère, tes réactions, ta façon d'être.
+          L'agent que tu <i>serais</i> si tu vivais dans le jeu.</span>
+        <span class="mode-meta"><b id="count-perso">24</b> QUESTIONS <em id="done-perso" hidden>✓ FAIT</em></span>
+      </button>
+
+      <button class="mode mode-alt" id="mode-jeu">
+        <span class="mode-tag">TEST 2 — GAMEPLAY</span>
+        <span class="mode-title">QUEL AGENT<br>DEVRAIS-TU JOUER&nbsp;?</span>
+        <span class="mode-desc">Ta visée, ton entry, ton mouvement, ton utilitaire.
+          L'agent sur lequel tu vas réellement <i>performer</i>.</span>
+        <span class="mode-meta"><b id="count-jeu">20</b> QUESTIONS <em id="done-jeu" hidden>✓ FAIT</em></span>
+      </button>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat"><b id="count-total">44</b><span>QUESTIONS</span></div>
+      <div class="stat"><b id="count-persos">25</b><span id="label-persos">AGENTS</span></div>
+      <div class="stat"><b id="count-roles">4</b><span>RÔLES</span></div>
+    </div>
+
+    <button class="btn-back" id="btn-jeux">‹ CHANGER DE JEU</button>
+  </section>
+
+  <!-- ============ ECRAN 2 : QUIZ ============ -->
+  <section id="screen-quiz" class="screen">
+    <div class="quiz-head">
+      <div class="quiz-meta">
+        <span class="q-counter">QUESTION <b id="q-num">1</b> / <span id="q-total">24</span></span>
+        <span class="q-player" id="q-player"></span>
+      </div>
+      <div class="progress"><div class="progress-fill" id="progress-fill"></div></div>
+      <p class="quiz-mode" id="quiz-mode">TEST DE PERSONNALITÉ</p>
+    </div>
+
+    <h2 class="question" id="question-text">…</h2>
+
+    <div class="answers" id="answers"></div>
+
+    <button class="btn-back" id="btn-back">‹ RETOUR</button>
+  </section>
+
+  <!-- ============ ECRAN 3 : CHARGEMENT ============ -->
+  <section id="screen-loading" class="screen">
+    <div class="loader">
+      <div class="loader-ring"></div>
+      <div class="loader-core"></div>
+    </div>
+    <p class="loading-text" id="loading-text">ANALYSE DU PROFIL…</p>
+  </section>
+
+  <!-- ============ ECRAN 4 : RESULTAT ============ -->
+  <section id="screen-result" class="screen">
+    <p class="kicker" id="result-kicker">PROTOCOLE TERMINÉ // CORRESPONDANCE ÉTABLIE</p>
+    <h2 class="result-title" id="result-title">L'AGENT QUI TE RESSEMBLE</h2>
+
+    <div class="agent-card" id="agent-card">
+      <div class="agent-portrait" id="agent-portrait">
+        <div class="agent-bg" id="agent-bg"></div>
+        <span class="agent-initial" id="agent-initial">J</span>
+        <img class="agent-img" id="agent-img" alt="" hidden>
+        <div class="agent-shine"></div>
+      </div>
+      <div class="agent-info">
+        <div class="agent-role" id="agent-role">
+          <img class="role-icon" id="role-icon" alt="" hidden><span id="role-label">DUELLISTE</span>
+        </div>
+        <h2 class="agent-name" id="agent-name">JETT</h2>
+        <p class="agent-quote" id="agent-quote">“…”</p>
+        <p class="agent-desc" id="agent-desc"></p>
+        <div class="agent-traits" id="agent-traits"></div>
+
+        <!-- fiche technique (League of Legends) -->
+        <div class="fiche" id="fiche" hidden>
+          <div class="fiche-ligne"><span>ATTAQUE</span><i><b id="stat-attaque"></b></i></div>
+          <div class="fiche-ligne"><span>DÉFENSE</span><i><b id="stat-defense"></b></i></div>
+          <div class="fiche-ligne"><span>MAGIE</span><i><b id="stat-magie"></b></i></div>
+        </div>
+
+        <!-- bloc affiché uniquement pour le test gameplay -->
+        <div class="difficulty" id="difficulty" hidden>
+          <span class="diff-label">DIFFICULTÉ</span>
+          <span class="diff-bars" id="diff-bars"></span>
+          <span class="diff-word" id="diff-word"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- conseils de jeu, uniquement pour le test gameplay -->
+    <div id="tips-block" hidden>
+      <h3 class="section-title">COMMENT BIEN LE JOUER</h3>
+      <ol class="tips" id="tips"></ol>
+    </div>
+
+    <!-- comparaison des deux tests -->
+    <div class="cross" id="cross" hidden>
+      <div class="cross-side">
+        <span class="cross-label">TU RESSEMBLES À</span>
+        <span class="cross-agent" id="cross-perso">—</span>
+      </div>
+      <div class="cross-vs">MAIS</div>
+      <div class="cross-side">
+        <span class="cross-label">TU DEVRAIS JOUER</span>
+        <span class="cross-agent" id="cross-jeu">—</span>
+      </div>
+      <p class="cross-note" id="cross-note"></p>
+    </div>
+
+    <h3 class="section-title" id="matches-title">TES AUTRES COMPATIBILITÉS</h3>
+    <div class="matches" id="matches"></div>
+
+    <h3 class="section-title" id="roles-title">TON PROFIL PAR RÔLE</h3>
+    <div class="roles" id="roles"></div>
+
+    <div class="result-actions">
+      <button class="btn btn-primary" id="btn-other"><span>FAIRE L'AUTRE TEST</span></button>
+      <button class="btn btn-ghost" id="btn-copy"><span>COPIER MON RÉSULTAT</span></button>
+      <button class="btn btn-ghost" id="btn-retry"><span>ACCUEIL</span></button>
+    </div>
+    <p class="copied" id="copied">Résultat copié dans le presse-papier ✓</p>
+  </section>
+
+</main>
+
+<footer class="foot">Test non officiel — fan-made. Aucun lien avec Riot Games.</footer>
+
+<!-- le ?v= force le navigateur à recharger les fichiers après une modification :
+     augmente le numéro si tu changes le code et que rien ne bouge à l'écran -->
+<script src="lol.js?v=5"></script>
+<script src="script.js?v=5"></script>
+</body>
+</html>

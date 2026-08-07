@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LoL Random Picker</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>🎲 LoL Random Picker</h1>
+      <p class="subtitle">Champion aléatoire, build aléatoire, runes aléatoires, sorts aléatoires.</p>
+    </header>
+
+    <div class="controls">
+      <button id="rollBtn" class="roll-btn">Piocher !</button>
+      <label class="check">
+        <input type="checkbox" id="lockRole"> Filtrer par rôle
+      </label>
+      <select id="roleSelect" disabled>
+        <option value="Top">Top</option>
+        <option value="Jungle">Jungle</option>
+        <option value="Mid">Mid</option>
+        <option value="ADC">ADC</option>
+        <option value="Support">Support</option>
+      </select>
+    </div>
+
+    <div id="loading" class="loading hidden">Chargement des données Riot...</div>
+
+    <div id="result" class="result hidden">
+      <section class="champion-card">
+        <img id="champSplash" src="" alt="">
+        <div class="champion-info">
+          <img id="champIcon" src="" alt="" class="champ-icon">
+          <div>
+            <h2 id="champName"></h2>
+            <p id="champTitle"></p>
+          </div>
+        </div>
+      </section>
+
+      <section class="row">
+        <div class="col">
+          <h3>Sorts d'invocateur</h3>
+          <div id="spells" class="pill-row"></div>
+        </div>
+        <div class="col">
+          <h3>Runes</h3>
+          <div id="runes" class="runes-block"></div>
+        </div>
+      </section>
+
+      <section class="col full">
+        <h3>Build (objets)</h3>
+        <div id="build" class="item-grid"></div>
+      </section>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

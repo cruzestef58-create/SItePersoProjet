@@ -1,0 +1,52 @@
+MÉMOIRE — entraînement quotidien
+=================================
+
+COMMENT L'OUVRIR
+----------------
+Double-clique sur "index.html". C'est tout : pas d'installation,
+pas d'internet, pas de compte.
+
+Conseil : une fois ouvert, fais Ctrl+D pour le mettre en favori,
+ou clic droit sur l'onglet > "Épingler l'onglet". Le but, c'est
+que tu tombes dessus tous les jours sans y penser.
+
+
+COMMENT S'EN SERVIR
+-------------------
+1. "Séance du jour" : 4 ou 5 exercices, ~10 minutes. Fais-la tous
+   les jours, même mal, même vite. La série 🔥 en haut à droite
+   ne compte que les jours où tu vas au bout.
+
+2. "Mes mémos" : c'est LA partie qui change ta vie quotidienne.
+   Note dedans ce que tu oublies vraiment (prénoms, codes,
+   promesses faites, où tu as rangé un truc). Le site te les
+   redemande à 1 jour, 3 jours, 7, 15 puis 30 jours d'intervalle.
+   Commence par 3 mémos, pas 30.
+
+3. "Progrès" : tes chiffres. Tu ne peux pas sentir ta mémoire
+   s'améliorer — c'est justement le problème que tu décris.
+   Ces courbes, elles, ne mentent pas. Regarde-les une fois
+   par semaine, pas tous les jours.
+
+4. "Méthodes" : à lire tranquillement, un bloc par jour.
+
+
+TES DONNÉES
+-----------
+Tout est enregistré dans ton navigateur, sur ton PC. Rien n'est
+envoyé nulle part.
+
+⚠️ Deux conséquences :
+ - si tu ouvres le site dans un AUTRE navigateur, tu repars de zéro ;
+ - si tu vides l'historique/les données de navigation, tu perds tout.
+
+=> Onglet "Progrès" > "Exporter (.json)" de temps en temps.
+   Le bouton "Importer" recharge cette sauvegarde.
+
+
+SI TU VEUX MODIFIER LE CONTENU
+------------------------------
+ - js/data.js  : la liste des mots, les personnes, les histoires,
+                 les astuces du jour.
+ - js/games/   : un fichier par exercice.
+ - style.css   : les couleurs (tout en haut du fichier).

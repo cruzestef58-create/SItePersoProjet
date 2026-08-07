@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hero Arena 3D</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #0b0e1a; font-family: system-ui, sans-serif; }
+    #app { width: 100vw; height: 100vh; display: block; }
+
+    #hud { position: fixed; top: 16px; left: 16px; padding: 14px 18px; border-radius: 14px;
+      background: rgba(15,20,40,0.65); backdrop-filter: blur(10px);
+      border: 1px solid rgba(120,160,255,0.25); color: #dce6ff; font-size: 13px; line-height: 1.6;
+      pointer-events: none; user-select: none; box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
+    #hud h1 { font-size: 15px; margin-bottom: 6px; color: #8fb4ff; }
+    #hud kbd { background: rgba(140,170,255,0.2); border: 1px solid rgba(140,170,255,0.35);
+      border-radius: 5px; padding: 1px 6px; font-size: 11px; font-family: monospace; }
+    #hud .hero-name { color: #fff; font-weight: 700; }
+
+    #score { position: fixed; top: 16px; right: 16px; padding: 12px 20px; border-radius: 14px;
+      background: rgba(15,20,40,0.65); backdrop-filter: blur(10px);
+      border: 1px solid rgba(120,160,255,0.25); color: #fff; text-align: center;
+      pointer-events: none; user-select: none; display: flex; gap: 22px; }
+    #score .k { font-size: 28px; font-weight: 800; line-height: 1; }
+    #score .lbl { font-size: 10px; color: #8fb4ff; letter-spacing: 1px; }
+    #score .kills .k { color: #ffd166; } #score .caps .k { color: #6ad0ff; }
+
+    /* Objectif (haut centre) */
+    #obj { position: fixed; top: 14px; left: 50%; transform: translateX(-50%);
+      width: 360px; padding: 8px 12px 10px; border-radius: 12px;
+      background: rgba(15,20,40,0.65); backdrop-filter: blur(10px);
+      border: 1px solid rgba(120,160,255,0.25); text-align: center; pointer-events: none; }
+    #obj .t { font-size: 11px; letter-spacing: 2px; color: #9fb6ff; margin-bottom: 5px; }
+    #obj .track { height: 12px; border-radius: 8px; background: rgba(10,14,30,0.8); overflow: hidden; }
+    #cap-bar { height: 100%; width: 0%; background: linear-gradient(90deg,#6ad0ff,#a0ffe0); transition: width .1s; }
+    #obj .state { font-size: 11px; color: #cfe0ff; margin-top: 4px; height: 13px; }
+
+    #bars { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; gap: 7px; align-items: center; pointer-events: none; }
+    .bar-wrap { width: 340px; height: 16px; border-radius: 10px; background: rgba(10,14,30,0.75);
+      border: 1px solid rgba(120,160,255,0.3); overflow: hidden; position: relative; }
+    .bar-wrap .label { position: absolute; left: 8px; top: 0; font-size: 11px; line-height: 16px;
+      color: #fff; text-shadow: 0 1px 2px #000; font-weight: 700; z-index: 2; }
+    #hp-bar { height: 100%; background: linear-gradient(90deg,#ff3b5c,#ff8a5b); transition: width .12s; }
+    #mana-bar { height: 100%; transition: width .1s linear; }
+
+    /* Boutons de compétences (bas droite) */
+    #skills { position: fixed; bottom: 22px; right: 22px; display: flex; gap: 12px; pointer-events: none; }
+    .skill { width: 78px; height: 78px; border-radius: 14px; position: relative; overflow: hidden;
+      background: rgba(15,20,40,0.8); border: 2px solid rgba(120,160,255,0.3);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      color: #fff; text-align: center; }
+    .skill .key { position: absolute; top: 4px; left: 6px; font-size: 11px; font-weight: 800; color: #8fb4ff; }
+    .skill .ic { font-size: 26px; } .skill .nm { font-size: 9px; color: #b9c8ef; margin-top: 2px; padding: 0 3px; line-height: 1.1; }
+    .skill .cd { position: absolute; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); }
+    .skill.ready { border-color: #ffd166; box-shadow: 0 0 16px rgba(255,209,102,0.6); }
+    #ult .fill { position: absolute; left: 0; right: 0; bottom: 0; background: rgba(255,209,102,0.25); }
+
+    #cross { position: fixed; top: 50%; left: 50%; width: 8px; height: 8px; margin: -4px 0 0 -4px;
+      border-radius: 50%; background: rgba(255,255,255,0.8); box-shadow: 0 0 0 2px rgba(0,0,0,0.4); pointer-events: none; }
+    #flash { position: fixed; inset: 0; background: rgba(180,0,30,0); pointer-events: none; transition: background .15s; z-index: 5; }
+    #msg { position: fixed; top: 40%; left: 50%; transform: translateX(-50%); color: #fff; font-size: 32px;
+      font-weight: 800; text-shadow: 0 2px 14px #000; opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 6; text-align: center; }
+
+    #select { position: fixed; inset: 0; z-index: 20; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 24px;
+      background: radial-gradient(circle at 50% 30%, #16204a, #0b0e1a 70%); }
+    #select h1 { color: #cfe0ff; font-size: 30px; letter-spacing: 1px; }
+    #select p.sub { color: #7e93c4; margin-top: -14px; font-size: 15px; }
+    #cards { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; max-width: 980px; }
+    .card { width: 215px; padding: 20px 16px; border-radius: 18px; cursor: pointer;
+      background: rgba(20,28,56,0.7); border: 2px solid rgba(120,160,255,0.18);
+      text-align: center; transition: transform .15s; user-select: none; }
+    .card:hover { transform: translateY(-6px); }
+    .card .orb { width: 58px; height: 58px; border-radius: 50%; margin: 0 auto 12px; box-shadow: 0 0 26px currentColor; }
+    .card .role { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 10px; border-radius: 20px;
+      background: rgba(120,160,255,0.18); color: #cfe0ff; margin-bottom: 8px; }
+    .card h3 { color: #fff; font-size: 19px; margin-bottom: 8px; }
+    .card .kit { color: #9fb6ff; font-size: 11px; line-height: 1.6; text-align: left; }
+    .card .kit b { color: #fff; }
+
+    #loader { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+      background: #0b0e1a; color: #8fb4ff; font-size: 18px; z-index: 30; }
+  </style>
+</head>
+<body>
+  <div id="loader">Chargement de l'aventure…</div>
+
+  <div id="select" style="display:none">
+    <h1>⚔️ Choisis ton héros</h1>
+    <p class="sub">Chaque rôle se joue différemment.</p>
+    <div id="cards"></div>
+  </div>
+
+  <div id="hud" style="display:none">
+    <h1>🎯 Hero Arena</h1>
+    <div>Héros : <span class="hero-name" id="hero-name">—</span></div>
+    <div>🖱️ <b>Souris</b> viser · <kbd>Clic G</kbd> tirer · <kbd>Échap</kbd> libère le curseur</div>
+    <div><kbd>ZQSD</kbd> bouger · <kbd>Maj</kbd> courir · <kbd>Espace</kbd> saut</div>
+    <div><kbd>E</kbd> capacité · <kbd>R</kbd> ultime</div>
+  </div>
+
+  <div id="score" style="display:none">
+    <div class="kills"><div class="k" id="kills">0</div><div class="lbl">ÉLIMINATIONS</div></div>
+    <div class="caps"><div class="k" id="caps">0</div><div class="lbl">CAPTURES</div></div>
+  </div>
+
+  <div id="obj" style="display:none">
+    <div class="t">🏁 POINT DE CONTRÔLE</div>
+    <div class="track"><div id="cap-bar"></div></div>
+    <div class="state" id="cap-state">Va sur le point pour le capturer</div>
+  </div>
+
+  <div id="bars" style="display:none">
+    <div class="bar-wrap"><span class="label">❤️ Vie</span><div id="hp-bar"></div></div>
+    <div class="bar-wrap"><span class="label">✦ Énergie</span><div id="mana-bar"></div></div>
+  </div>
+
+  <div id="skills" style="display:none">
+    <div class="skill" id="abil"><span class="key">E</span><span class="ic" id="abil-ic">✦</span><span class="nm" id="abil-nm">—</span><div class="cd" id="abil-cd" style="height:0%"></div></div>
+    <div class="skill" id="ult"><span class="key">R</span><span class="ic" id="ult-ic">💥</span><span class="nm" id="ult-nm">—</span><div class="fill" id="ult-fill" style="height:0%"></div></div>
+  </div>
+
+  <div id="cross" style="display:none"></div>
+  <div id="flash"></div>
+  <div id="msg"></div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+    import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+    import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+    const lerp=(a,b,t)=>a+(b-a)*t;
+    const V3=(x,y,z)=>new THREE.Vector3(x,y,z);
+    const dist2D=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
+    const hx=c=>'#'+c.toString(16).padStart(6,'0');
+
+    // ═══════════════════════════════════════════════════════════
+    //  CATALOGUE DES HÉROS — chacun : rôle + tir + capacité (E) + ultime (R)
+    // ═══════════════════════════════════════════════════════════
+    const HEROES = [
+      { id:'pyro', name:'Pyra', role:'DPS', roleIcon:'🗡️',
+        body:0xff5a2b, accent:0xffd166,
+        maxHp:110,
+        primary:{ name:'Boule de feu', cost:14, dmg:30, speed:28, cd:0.16, color:0xff7a1a, light:0xff6622 },
+        ability:{ name:'Élan ardent', type:'dash', cd:5, ic:'💨' },
+        ultimate:{ name:'Supernova', type:'nova', radius:11, dmg:140, color:0xff7a1a, ic:'☄️' } },
+      { id:'cryo', name:'Givrane', role:'Tank', roleIcon:'🛡️',
+        body:0x46b6ff, accent:0xd6f3ff,
+        maxHp:190,
+        primary:{ name:'Éclat de glace', cost:22, dmg:50, speed:23, cd:0.5, color:0x88e0ff, light:0x55c8ff },
+        ability:{ name:'Carapace de givre', type:'shield', cd:8, dur:3.5, reduction:0.65, ic:'🧊' },
+        ultimate:{ name:'Blizzard', type:'blizzard', radius:13, dmg:16, dur:4.5, color:0x88e0ff, ic:'❄️' } },
+      { id:'volt', name:'Volt', role:'DPS', roleIcon:'🗡️',
+        body:0xf2d33a, accent:0xfff7c2,
+        maxHp:90,
+        primary:{ name:'Foudre', cost:8, dmg:17, speed:42, cd:0.09, color:0xfff04a, light:0xffe033 },
+        ability:{ name:'Clignement', type:'blink', cd:4, dist:9, ic:'⚡' },
+        ultimate:{ name:'Tempête', type:'chain', radius:16, dmg:95, color:0xfff04a, ic:'🌩️' } },
+      { id:'toxic', name:'Venn', role:'Soigneur', roleIcon:'➕',
+        body:0x4be07a, accent:0xc9ffd6,
+        maxHp:120,
+        primary:{ name:'Spore', cost:11, dmg:24, speed:21, cd:0.18, color:0x7dff9b, light:0x44ff77 },
+        ability:{ name:'Sève vitale', type:'heal', cd:6, amount:60, ic:'💚' },
+        ultimate:{ name:'Floraison', type:'healnova', radius:11, dmg:70, color:0x7dff9b, ic:'🌸' } },
+    ];
+    const ENEMY_COLORS = { body:0x9b2b4d, accent:0xff5a7a };
+
+    // ═══════════════════════════════════════════════════════════
+    //  SCÈNE
+    // ═══════════════════════════════════════════════════════════
+    const scene=new THREE.Scene();
+    scene.background=new THREE.Color(0x0d1330);
+    scene.fog=new THREE.Fog(0x0d1330,28,80);
+    const camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,200);
+    const renderer=new THREE.WebGLRenderer({antialias:true});
+    renderer.setSize(innerWidth,innerHeight); renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
+    renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFShadowMap;
+    renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.15;
+    renderer.domElement.id='app'; document.body.appendChild(renderer.domElement);
+
+    // Reflets d'ambiance (rend les matériaux bien plus jolis)
+    const pmrem=new THREE.PMREMGenerator(renderer);
+    scene.environment=pmrem.fromScene(new RoomEnvironment(),0.04).texture;
+
+    // Post-traitement : bloom (lueur) → l'effet "stylé" néon
+    const composer=new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene,camera));
+    const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth/2,innerHeight/2),0.7,0.5,0.6);
+    composer.addPass(bloom);
+    composer.addPass(new OutputPass());
+    scene.add(camera); // permet d'afficher l'objet tenu en main (viewmodel)
+
+    scene.add(new THREE.HemisphereLight(0x88aaff,0x202040,0.7));
+    const sun=new THREE.DirectionalLight(0xffffff,1.6);
+    sun.position.set(15,30,10); sun.castShadow=true; sun.shadow.mapSize.set(1024,1024);
+    sun.shadow.camera.left=-40; sun.shadow.camera.right=40; sun.shadow.camera.top=40; sun.shadow.camera.bottom=-40;
+    scene.add(sun);
+
+    const ARENA=55;
+    const ground=new THREE.Mesh(new THREE.PlaneGeometry(120,120),new THREE.MeshStandardMaterial({color:0x161e3a,roughness:0.45,metalness:0.55}));
+    ground.rotation.x=-Math.PI/2; ground.receiveShadow=true; scene.add(ground);
+    const grid=new THREE.GridHelper(120,60,0x4d82ff,0x243a7a);
+    grid.material.opacity=0.5; grid.material.transparent=true; scene.add(grid);
+
+    // ---- Ciel dégradé (skydome) ----
+    const sky=new THREE.Mesh(new THREE.SphereGeometry(180,32,16),new THREE.ShaderMaterial({
+      side:THREE.BackSide, depthWrite:false,
+      uniforms:{ top:{value:new THREE.Color(0x2a4a8c)}, mid:{value:new THREE.Color(0x10183a)}, bot:{value:new THREE.Color(0x05070f)} },
+      vertexShader:`varying vec3 vP; void main(){ vP=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+      fragmentShader:`varying vec3 vP; uniform vec3 top; uniform vec3 mid; uniform vec3 bot;
+        void main(){ float h=normalize(vP).y; vec3 c=mix(bot,mid,smoothstep(-0.25,0.25,h)); c=mix(c,top,smoothstep(0.1,0.75,h)); gl_FragColor=vec4(c,1.0); }`
+    }));
+    scene.add(sky);
+
+    // ---- Étoiles ----
+    const starPos=[];
+    for(let i=0;i<700;i++){ const v=new THREE.Vector3(Math.random()-0.5,Math.random()*0.55+0.06,Math.random()-0.5).normalize().multiplyScalar(150); starPos.push(v.x,v.y,v.z); }
+    const starGeo=new THREE.BufferGeometry(); starGeo.setAttribute('position',new THREE.Float32BufferAttribute(starPos,3));
+    const stars=new THREE.Points(starGeo,new THREE.PointsMaterial({color:0xcdd8ff,size:0.7,transparent:true,opacity:0.9,depthWrite:false,fog:false}));
+    scene.add(stars);
+
+    const obstacles=[];
+    const crystalMat=new THREE.MeshStandardMaterial({color:0x8a6bff,emissive:0x4a2adf,emissiveIntensity:1.3,roughness:0.18,metalness:0.5});
+    for(let i=0;i<14;i++){
+      const h=1.5+Math.random()*4;
+      const c=new THREE.Mesh(new THREE.ConeGeometry(0.6+Math.random(),h,5),crystalMat);
+      c.position.set((Math.random()-0.5)*90,h/2,(Math.random()-0.5)*90);
+      if(c.position.length()<14)c.position.multiplyScalar(2.2);
+      c.rotation.y=Math.random()*Math.PI; c.castShadow=true; c.receiveShadow=true;
+      scene.add(c); obstacles.push(c);
+    }
+
+    // ---- POINT DE CONTRÔLE (objectif) au centre ----
+    const CAP_R=6;
+    const capDisc=new THREE.Mesh(new THREE.CircleGeometry(CAP_R,48),
+      new THREE.MeshBasicMaterial({color:0x6ad0ff,transparent:true,opacity:0.12}));
+    capDisc.rotation.x=-Math.PI/2; capDisc.position.y=0.05; scene.add(capDisc);
+    const capRing=new THREE.Mesh(new THREE.RingGeometry(CAP_R-0.25,CAP_R,48),
+      new THREE.MeshBasicMaterial({color:0x6ad0ff,transparent:true,opacity:0.6,side:THREE.DoubleSide}));
+    capRing.rotation.x=-Math.PI/2; capRing.position.y=0.06; scene.add(capRing);
+    const capPillar=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.15,6,8),
+      new THREE.MeshStandardMaterial({color:0x6ad0ff,emissive:0x2a6a88,emissiveIntensity:0.6}));
+    capPillar.position.y=3; scene.add(capPillar);
+
+    // ═══════════════════════════════════════════════════════════
+    //  FABRIQUE DE PERSONNAGE ARTICULÉ
+    // ═══════════════════════════════════════════════════════════
+    function buildHero(cfg){
+      const g=new THREE.Group();
+      const matBody=new THREE.MeshStandardMaterial({color:cfg.body,roughness:0.32,metalness:0.5});
+      const matAcc=new THREE.MeshStandardMaterial({color:cfg.accent,emissive:cfg.accent,emissiveIntensity:0.8,roughness:0.3,metalness:0.3});
+      const matDark=new THREE.MeshStandardMaterial({color:0x10162a,roughness:0.5,metalness:0.6});
+      const part=(geo,m,x,y,z)=>{const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;return o;};
+      const torso=part(new THREE.BoxGeometry(0.95,1.05,0.55),matBody,0,1.55,0); g.add(torso);
+      g.add(part(new THREE.BoxGeometry(0.85,0.4,0.5),matDark,0,0.95,0));
+      g.add(part(new THREE.BoxGeometry(0.45,0.45,0.1),matAcc,0,1.65,0.3));
+      const head=part(new THREE.SphereGeometry(0.4,18,18),matBody,0,2.35,0); g.add(head);
+      g.add(part(new THREE.BoxGeometry(0.5,0.16,0.1),new THREE.MeshStandardMaterial({color:0x0b0e1a,emissive:cfg.accent,emissiveIntensity:1.4}),0,2.38,-0.34));
+      const arm=s=>{const p=new THREE.Group();p.position.set(0.62*s,2.05,0);
+        p.add(part(new THREE.BoxGeometry(0.26,0.95,0.26),matBody,0,-0.48,0));
+        p.add(part(new THREE.SphereGeometry(0.17,10,10),matAcc,0,-0.98,0));g.add(p);return p;};
+      const leg=s=>{const p=new THREE.Group();p.position.set(0.24*s,0.95,0);
+        p.add(part(new THREE.BoxGeometry(0.3,0.95,0.3),matBody,0,-0.48,0));
+        p.add(part(new THREE.BoxGeometry(0.34,0.18,0.5),matDark,0,-0.98,-0.1));g.add(p);return p;};
+      return {group:g,torso,head,armL:arm(1),armR:arm(-1),legL:leg(1),legR:leg(-1),_phase:0,shieldMesh:null};
+    }
+    function animateHero(r,{speed,grounded,dt,time}){
+      if(!grounded){
+        r.legL.rotation.x=lerp(r.legL.rotation.x,-0.8,0.2); r.legR.rotation.x=lerp(r.legR.rotation.x,0.4,0.2);
+        r.armL.rotation.x=lerp(r.armL.rotation.x,-2.2,0.2); r.armR.rotation.x=lerp(r.armR.rotation.x,-2.2,0.2);
+        r.torso.position.y=lerp(r.torso.position.y,1.55,0.2);
+      } else if(speed>0.1){
+        r._phase+=dt*(6+speed*1.5);
+        const s=Math.sin(r._phase)*Math.min(1,speed/6)*0.9;
+        r.legL.rotation.x=s; r.legR.rotation.x=-s; r.armL.rotation.x=-s; r.armR.rotation.x=s;
+        r.torso.position.y=1.55+Math.abs(Math.sin(r._phase))*0.05;
+      } else {
+        const b=Math.sin(time*2)*0.04;
+        r.torso.position.y=lerp(r.torso.position.y,1.55+b,0.1);
+        r.legL.rotation.x=lerp(r.legL.rotation.x,0,0.1); r.legR.rotation.x=lerp(r.legR.rotation.x,0,0.1);
+        r.armL.rotation.x=lerp(r.armL.rotation.x,0.05,0.1); r.armR.rotation.x=lerp(r.armR.rotation.x,0.05,0.1);
+      }
+    }
+    function makeHealthBar(){
+      const grp=new THREE.Group(); grp.position.y=3.0;
+      const bg=new THREE.Mesh(new THREE.PlaneGeometry(1.4,0.18),new THREE.MeshBasicMaterial({color:0x330011}));
+      const fg=new THREE.Mesh(new THREE.PlaneGeometry(1.4,0.18),new THREE.MeshBasicMaterial({color:0x33ff66})); fg.position.z=0.001;
+      grp.add(bg); grp.add(fg);
+      return {group:grp,set(r){fg.scale.x=Math.max(0.001,r);fg.position.x=-(1-r)*0.7;fg.material.color.setHSL(0.33*r,0.9,0.5);}};
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  ÉTAT
+    // ═══════════════════════════════════════════════════════════
+    let hero=null,player=null,rig=null;
+    const playerVel=new THREE.Vector3();
+    let onGround=true,facing=0,mana=100,hp=100,maxHp=100,kills=0,caps=0;
+    let dead=false,respawnT=0,hurtCd=0;
+    let abilityCd=0,ultCharge=0,fireCd=0;
+    let dashT=0,dashDir=new THREE.Vector3(),shieldT=0,shieldRed=0;
+
+    const enemies=[],projectiles=[],sparks=[],rings=[],zones=[];
+    const sparkGeo=new THREE.SphereGeometry(0.12,6,6);
+    const projGeo=new THREE.SphereGeometry(0.32,12,12);
+    const sparkMats={}; // matériaux de particules réutilisés (1 par couleur)
+    const sparkMat=c=>sparkMats[c]||(sparkMats[c]=new THREE.MeshBasicMaterial({color:c,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));
+    const MAX_ENEMIES=6, MAX_SPARKS=130;
+    let capProgress=0;
+
+    // Contrôles
+    addEventListener('keydown',e=>{
+      keysDown(e.code);
+      if(e.code==='KeyE') tryAbility();
+      if(e.code==='KeyR') tryUltimate();
+    });
+    const keys={};
+    function keysDown(c){keys[c]=true;}
+    addEventListener('keyup',e=>keys[e.code]=false);
+
+    // ---- Vue première personne : la souris fait tourner la tête ----
+    let yaw=0,pitch=0,mouseDown=false;
+    const dirH=()=>V3(-Math.sin(yaw),0,-Math.cos(yaw));                                   // direction horizontale (déplacement)
+    const dirAim=()=>V3(-Math.cos(pitch)*Math.sin(yaw),Math.sin(pitch),-Math.cos(pitch)*Math.cos(yaw)); // direction de visée (avec hauteur)
+    const locked=()=>document.pointerLockElement===renderer.domElement;
+    renderer.domElement.addEventListener('contextmenu',e=>e.preventDefault());
+    renderer.domElement.addEventListener('mousedown',e=>{
+      if(e.button!==0) return;
+      if(!locked()){ renderer.domElement.requestPointerLock(); return; } // 1er clic = on capture la souris
+      mouseDown=true; castPower();
+    });
+    addEventListener('mouseup',e=>{ if(e.button===0) mouseDown=false; });
+    addEventListener('mousemove',e=>{ if(!locked()) return;
+      yaw  -= e.movementX*0.0022;
+      pitch-= e.movementY*0.0022;
+      pitch = Math.max(-1.3,Math.min(1.3,pitch)); });
+    document.addEventListener('pointerlockchange',()=>{ if(!locked()) mouseDown=false; });
+
+    // ═══════════════════════════════════════════════════════════
+    //  TIR PRINCIPAL
+    // ═══════════════════════════════════════════════════════════
+    function castPower(){
+      if(dead||!hero||fireCd>0) return;
+      const p=hero.primary; if(mana<p.cost) return;
+      mana-=p.cost; fireCd=p.cd;
+      const ball=new THREE.Mesh(projGeo,hero._projMat);
+      const dir=dirAim();
+      ball.position.copy(player.position).add(V3(0,1.7,0)).add(dir.clone().multiplyScalar(0.9));
+      scene.add(ball);
+      projectiles.push({mesh:ball,dir,life:2.5,dmg:p.dmg,speed:p.speed});
+    }
+
+    function spawnSpark(pos,color,big){
+      if(sparks.length>MAX_SPARKS){ const old=sparks.shift(); scene.remove(old.mesh); }
+      const m=new THREE.Mesh(sparkGeo,sparkMat(color));
+      m.position.copy(pos); m.scale.setScalar(big?2.2:1); scene.add(m);
+      sparks.push({mesh:m,life:big?0.5:0.35});
+    }
+    function spawnRing(pos,color,maxR,dur){
+      const m=new THREE.Mesh(new THREE.RingGeometry(0.6,1.0,40),
+        new THREE.MeshBasicMaterial({color,transparent:true,opacity:0.9,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false}));
+      m.rotation.x=-Math.PI/2; m.position.copy(pos); m.position.y=0.12; scene.add(m);
+      rings.push({mesh:m,t:0,dur,maxR});
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  DÉGÂTS AUX ENNEMIS
+    // ═══════════════════════════════════════════════════════════
+    function dealDamage(j,dmg,gainUlt=true){
+      const e=enemies[j]; e.hp-=dmg;
+      if(gainUlt) ultCharge=Math.min(100,ultCharge+dmg*0.18);
+      if(e.hp<=0) killEnemy(j);
+    }
+    function aoeDamage(pos,radius,dmg,gainUlt){
+      for(let j=enemies.length-1;j>=0;j--){
+        if(dist2D(enemies[j].rig.group.position,pos)<radius){
+          spawnSpark(enemies[j].rig.group.position.clone().add(V3(0,1.4,0)),0xffffff,true);
+          dealDamage(j,dmg,gainUlt);
+        }
+      }
+    }
+    function killEnemy(i){
+      const e=enemies[i];
+      for(let k=0;k<14;k++) spawnSpark(
+        e.rig.group.position.clone().add(V3((Math.random()-0.5)*1.5,1+Math.random()*1.5,(Math.random()-0.5)*1.5)),
+        ENEMY_COLORS.accent,true);
+      scene.remove(e.rig.group); enemies.splice(i,1);
+      kills++; document.getElementById('kills').textContent=kills;
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  CAPACITÉ (E) ET ULTIME (R)
+    // ═══════════════════════════════════════════════════════════
+    function tryAbility(){
+      if(!running||dead||abilityCd>0||!hero) return;
+      const a=hero.ability, dir=dirH();
+      if(a.type==='dash'){ dashDir.copy(dir); dashT=0.18; spawnRing(player.position,hero.accent,3,0.4); }
+      else if(a.type==='blink'){
+        player.position.addScaledVector(dir,a.dist);
+        player.position.x=Math.max(-ARENA,Math.min(ARENA,player.position.x));
+        player.position.z=Math.max(-ARENA,Math.min(ARENA,player.position.z));
+        spawnRing(player.position,hero.accent,3,0.4);
+      }
+      else if(a.type==='shield'){ shieldT=a.dur; shieldRed=a.reduction; addShieldVisual(); }
+      else if(a.type==='heal'){ hp=Math.min(maxHp,hp+a.amount); spawnRing(player.position,hero.accent,4,0.5); showMsg('💚 +'+a.amount); }
+      abilityCd=a.cd;
+    }
+    function addShieldVisual(){
+      if(rig.shieldMesh) return;
+      const s=new THREE.Mesh(new THREE.SphereGeometry(1.3,18,18),
+        new THREE.MeshBasicMaterial({color:hero.accent,transparent:true,opacity:0.25}));
+      s.position.y=1.4; rig.group.add(s); rig.shieldMesh=s;
+    }
+    function tryUltimate(){
+      if(!running||dead||ultCharge<100||!hero) return;
+      const u=hero.ultimate, p=player.position.clone();
+      if(u.type==='nova'||u.type==='chain'){ aoeDamage(p,u.radius,u.dmg,false); spawnRing(p,u.color,u.radius,0.7); }
+      else if(u.type==='blizzard'){ spawnZone(p,u.radius,u.dur,u.dmg,true,u.color); }
+      else if(u.type==='healnova'){ hp=maxHp; aoeDamage(p,u.radius,u.dmg,false); spawnRing(p,u.color,u.radius,0.7); }
+      ultCharge=0; showMsg('💥 '+u.name+' !');
+    }
+    function spawnZone(pos,radius,dur,dmg,slow,color){
+      const disc=new THREE.Mesh(new THREE.CircleGeometry(radius,40),
+        new THREE.MeshBasicMaterial({color,transparent:true,opacity:0.18}));
+      disc.rotation.x=-Math.PI/2; disc.position.set(pos.x,0.08,pos.z); scene.add(disc);
+      zones.push({mesh:disc,pos:pos.clone(),radius,dur,dmg,slow,tickCd:0});
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  ENNEMIS
+    // ═══════════════════════════════════════════════════════════
+    function spawnEnemy(){
+      const r=buildHero(ENEMY_COLORS);
+      const ang=Math.random()*Math.PI*2,d=30+Math.random()*15;
+      r.group.position.set(Math.sin(ang)*d,0,Math.cos(ang)*d);
+      const bar=makeHealthBar(); r.group.add(bar.group); scene.add(r.group);
+      enemies.push({rig:r,hp:100,maxHp:100,bar,contactCd:0,slowT:0});
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  JOUEUR : dégâts / mort / respawn
+    // ═══════════════════════════════════════════════════════════
+    const flash=document.getElementById('flash'),msg=document.getElementById('msg');
+    function damagePlayer(d){
+      if(dead) return;
+      if(shieldT>0) d*=(1-shieldRed);
+      hp-=d; flash.style.background='rgba(180,0,30,0.35)';
+      setTimeout(()=>flash.style.background='rgba(180,0,30,0)',120);
+      if(hp<=0){ hp=0; dead=true; respawnT=2.0; showMsg('💀 Éliminé !'); }
+    }
+    function showMsg(t){ msg.textContent=t; msg.style.opacity=1; clearTimeout(msg._t); msg._t=setTimeout(()=>msg.style.opacity=0,1300); }
+    function respawn(){ hp=maxHp; mana=100; dead=false; shieldT=0; dashT=0;
+      if(rig.shieldMesh){rig.group.remove(rig.shieldMesh);rig.shieldMesh=null;}
+      player.position.set(0,0,0); playerVel.set(0,0,0); }
+
+    // ═══════════════════════════════════════════════════════════
+    //  BOUCLE
+    // ═══════════════════════════════════════════════════════════
+    const clock=new THREE.Clock();
+    const hpBar=document.getElementById('hp-bar'),manaBar=document.getElementById('mana-bar');
+    const capBar=document.getElementById('cap-bar'),capState=document.getElementById('cap-state');
+    const abilCdEl=document.getElementById('abil-cd'),ultFillEl=document.getElementById('ult-fill');
+    const abilBox=document.getElementById('abil'),ultBox=document.getElementById('ult');
+    let running=false;
+
+    function animate(){
+      requestAnimationFrame(animate);
+      const dt=Math.min(clock.getDelta(),0.05),time=clock.elapsedTime;
+      if(!running){ composer.render(); return; }
+
+      fireCd-=dt; hurtCd-=dt; abilityCd=Math.max(0,abilityCd-dt);
+      if(shieldT>0){ shieldT-=dt; if(shieldT<=0&&rig.shieldMesh){rig.group.remove(rig.shieldMesh);rig.shieldMesh=null;} }
+      if(mouseDown) castPower();
+      ultCharge=Math.min(100,ultCharge+2.2*dt); // recharge passive de l'ultime
+
+      if(dead){
+        respawnT-=dt; if(respawnT<=0) respawn();
+      } else {
+        let speed=0;
+        if(dashT>0){
+          dashT-=dt; speed=11;
+          player.position.addScaledVector(dashDir,26*dt);
+        } else {
+          const fwd=dirH(), right=V3(Math.cos(yaw),0,-Math.sin(yaw));
+          const mv=new THREE.Vector3();
+          if(keys['KeyW']||keys['ArrowUp']||keys['KeyZ'])mv.add(fwd);
+          if(keys['KeyS']||keys['ArrowDown'])mv.sub(fwd);
+          if(keys['KeyD']||keys['ArrowRight'])mv.add(right);
+          if(keys['KeyA']||keys['ArrowLeft']||keys['KeyQ'])mv.sub(right);
+          const sprint=keys['ShiftLeft']||keys['ShiftRight'];
+          if(mv.lengthSq()>0){ mv.normalize(); speed=sprint?11:6.5;
+            player.position.addScaledVector(mv,speed*dt); facing=yaw; player.rotation.y=yaw; }
+        }
+        player.position.x=Math.max(-ARENA,Math.min(ARENA,player.position.x));
+        player.position.z=Math.max(-ARENA,Math.min(ARENA,player.position.z));
+        if(keys['Space']&&onGround){playerVel.y=9;onGround=false;}
+        playerVel.y-=22*dt; player.position.y+=playerVel.y*dt;
+        if(player.position.y<=0){player.position.y=0;playerVel.y=0;onGround=true;}
+        animateHero(rig,{speed,grounded:onGround,dt,time});
+      }
+
+      // Caméra (première personne)
+      camera.position.copy(player.position).add(V3(0,1.7,0));
+      camera.rotation.order='YXZ'; camera.rotation.y=yaw; camera.rotation.x=pitch; camera.rotation.z=0;
+      if(hero._vm) hero._vm.position.y=-0.32+Math.sin(time*5)*0.012; // léger balancement de l'arme
+
+      // Ennemis
+      if(enemies.length<MAX_ENEMIES && Math.random()<0.025) spawnEnemy();
+      let enemyOnPoint=false;
+      for(let i=enemies.length-1;i>=0;i--){
+        const e=enemies[i]; e.contactCd-=dt; if(e.slowT>0)e.slowT-=dt;
+        const toP=player.position.clone().sub(e.rig.group.position); toP.y=0; const d=toP.length();
+        let es=0;
+        if(!dead&&d>1.6){ toP.normalize(); es=e.slowT>0?1.4:3.4;
+          e.rig.group.position.add(toP.multiplyScalar(es*dt));
+          e.rig.group.rotation.y=Math.atan2(toP.x,toP.z);
+        } else if(!dead&&e.contactCd<=0){ damagePlayer(11); e.contactCd=0.7; }
+        animateHero(e.rig,{speed:es,grounded:true,dt,time});
+        e.bar.group.quaternion.copy(camera.quaternion); e.bar.set(e.hp/e.maxHp);
+        if(dist2D(e.rig.group.position,capPillar.position)<CAP_R) enemyOnPoint=true;
+      }
+
+      // Projectiles
+      for(let i=projectiles.length-1;i>=0;i--){
+        const f=projectiles[i];
+        f.mesh.position.add(f.dir.clone().multiplyScalar(f.speed*dt)); f.life-=dt;
+        if(Math.random()<0.3) spawnSpark(f.mesh.position,hero.accent);
+        let hit=false;
+        for(let j=enemies.length-1;j>=0;j--){
+          const c=enemies[j].rig.group.position.clone().add(V3(0,1.4,0));
+          if(f.mesh.position.distanceTo(c)<1.0){ spawnSpark(f.mesh.position,hero.primary.color,true); dealDamage(j,f.dmg,true); hit=true; break; }
+        }
+        if(hit||f.life<=0){ scene.remove(f.mesh); projectiles.splice(i,1); }
+      }
+
+      // Zones (blizzard / floraison persistante)
+      for(let i=zones.length-1;i>=0;i--){
+        const z=zones[i]; z.dur-=dt; z.tickCd-=dt;
+        z.mesh.material.opacity=0.10+Math.abs(Math.sin(time*4))*0.08;
+        if(z.tickCd<=0){ z.tickCd=0.5;
+          for(let j=enemies.length-1;j>=0;j--){
+            if(dist2D(enemies[j].rig.group.position,z.pos)<z.radius){ if(z.slow)enemies[j].slowT=0.8; dealDamage(j,z.dmg,false); }
+          }
+        }
+        if(z.dur<=0){ scene.remove(z.mesh); zones.splice(i,1); }
+      }
+
+      // Anneaux d'onde de choc
+      for(let i=rings.length-1;i>=0;i--){
+        const r=rings[i]; r.t+=dt; const k=r.t/r.dur;
+        const s=lerp(0.5,r.maxR,k); r.mesh.scale.set(s,s,s); r.mesh.material.opacity=Math.max(0,0.9*(1-k));
+        if(k>=1){ scene.remove(r.mesh); rings.splice(i,1); }
+      }
+
+      // Particules
+      for(let i=sparks.length-1;i>=0;i--){
+        const s=sparks[i]; s.life-=dt; s.mesh.scale.multiplyScalar(0.9);
+        if(s.life<=0){scene.remove(s.mesh);sparks.splice(i,1);}
+      }
+
+      // ---- OBJECTIF : capture du point ----
+      const playerOnPoint=!dead && dist2D(player.position,capPillar.position)<CAP_R;
+      if(playerOnPoint && !enemyOnPoint){ capProgress=Math.min(100,capProgress+14*dt); capState.textContent='⏳ Capture en cours…'; }
+      else if(enemyOnPoint && playerOnPoint){ capState.textContent='⚠️ Point contesté !'; }
+      else if(enemyOnPoint){ capProgress=Math.max(0,capProgress-8*dt); capState.textContent='🛑 Ennemis sur le point !'; }
+      else { capState.textContent='Va sur le point pour le capturer'; }
+      if(capProgress>=100){ caps++; document.getElementById('caps').textContent=caps;
+        capProgress=0; ultCharge=Math.min(100,ultCharge+40); showMsg('🏁 Point capturé ! +1'); }
+      capBar.style.width=capProgress+'%';
+      const cc=0x6ad0ff; capRing.material.color.setHex(playerOnPoint?(enemyOnPoint?0xffaa33:0x33ff88):(enemyOnPoint?0xff4466:cc));
+
+      // Régén + UI
+      mana=Math.min(100,mana+18*dt);
+      if(!dead) hp=Math.min(maxHp,hp+4*dt);
+      hpBar.style.width=(hp/maxHp*100)+'%'; manaBar.style.width=mana+'%';
+      abilCdEl.style.height=(abilityCd/hero.ability.cd*100)+'%';
+      abilBox.classList.toggle('ready',abilityCd<=0);
+      ultFillEl.style.height=ultCharge+'%';
+      ultBox.classList.toggle('ready',ultCharge>=100);
+      for(const c of obstacles) c.rotation.y+=dt*0.3;
+      capPillar.rotation.y+=dt*0.6;
+
+      composer.render();
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  SÉLECTION → DÉMARRAGE
+    // ═══════════════════════════════════════════════════════════
+    function startGame(c){
+      hero=c; rig=buildHero(hero); player=rig.group; scene.add(player);
+      maxHp=hero.maxHp; hp=maxHp;
+      hero._projMat=new THREE.MeshStandardMaterial({color:hero.primary.color,emissive:hero.primary.color,emissiveIntensity:2.2,roughness:0.2});
+      player.visible=false; // en 1re personne on ne voit pas son propre corps
+      const vm=new THREE.Mesh(new THREE.IcosahedronGeometry(0.13,0),
+        new THREE.MeshStandardMaterial({color:hero.accent,emissive:hero.accent,emissiveIntensity:1.6,roughness:0.3,metalness:0.3}));
+      vm.position.set(0.42,-0.32,-0.8); camera.add(vm); hero._vm=vm;
+      showMsg('🖱️ Clique pour viser');
+      manaBar.style.background=`linear-gradient(90deg,${hx(hero.body)},${hx(hero.accent)})`;
+      document.getElementById('hero-name').textContent=`${hero.roleIcon} ${hero.name} — ${hero.role}`;
+      document.getElementById('abil-ic').textContent=hero.ability.ic;
+      document.getElementById('abil-nm').textContent=hero.ability.name;
+      document.getElementById('ult-ic').textContent=hero.ultimate.ic;
+      document.getElementById('ult-nm').textContent=hero.ultimate.name;
+      document.getElementById('select').style.display='none';
+      for(const id of ['hud','score','obj','cross']) document.getElementById(id).style.display='block';
+      document.getElementById('bars').style.display='flex';
+      document.getElementById('skills').style.display='flex';
+      for(let i=0;i<4;i++) spawnEnemy();
+      running=true;
+    }
+    function buildSelectScreen(){
+      const cards=document.getElementById('cards');
+      for(const h of HEROES){
+        const card=document.createElement('div'); card.className='card';
+        card.innerHTML=`<div class="orb" style="background:${hx(h.body)};color:${hx(h.body)}"></div>
+          <div class="role">${h.roleIcon} ${h.role}</div>
+          <h3>${h.name}</h3>
+          <div class="kit">
+            🔫 <b>${h.primary.name}</b><br>
+            <kbd>E</kbd> ${h.ability.ic} <b>${h.ability.name}</b><br>
+            <kbd>R</kbd> ${h.ultimate.ic} <b>${h.ultimate.name}</b>
+          </div>`;
+        card.onclick=()=>startGame(h); cards.appendChild(card);
+      }
+    }
+    addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth,innerHeight); composer.setSize(innerWidth,innerHeight); bloom.setSize(innerWidth,innerHeight);});
+
+    buildSelectScreen();
+    document.getElementById('loader').style.display='none';
+    document.getElementById('select').style.display='flex';
+    animate();
+  </script>
+</body>
+</html>

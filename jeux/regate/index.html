@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⛵ Régate — Course de Bateaux</title>
+<style>
+  :root{ --gold:#ffd34d; --ink:#06283a; }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:"Segoe UI",system-ui,sans-serif;
+    background:linear-gradient(160deg,#04293f,#075a86 60%,#0b8fb8);
+    color:#eaf7ff; overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+    height:100vh; user-select:none;
+  }
+  #game{
+    position:relative;
+    width:min(96vw,960px);
+    height:min(94vh,620px);
+    border-radius:18px; overflow:hidden;
+    box-shadow:0 30px 70px rgba(0,0,0,.5), inset 0 0 0 2px rgba(255,255,255,.06);
+    background:#0a6fa8;
+  }
+  canvas{display:block; width:100%; height:100%;}
+
+  .screen{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:24px;
+    background:radial-gradient(120% 120% at 50% 0%, rgba(16,179,214,.35), rgba(4,41,63,.92));
+    backdrop-filter:blur(2px); z-index:10; overflow:auto;
+  }
+  .hidden{display:none !important;}
+  h1{ font-size:clamp(30px,6vw,58px); letter-spacing:1px; text-shadow:0 4px 0 rgba(0,0,0,.25); margin-bottom:6px;}
+  .sub{opacity:.85; margin-bottom:22px; font-size:clamp(13px,2.4vw,17px); max-width:580px;}
+  .gold{color:var(--gold);}
+
+  .btn{
+    cursor:pointer; border:none; font-weight:800; font-size:18px; color:var(--ink);
+    background:linear-gradient(180deg,#ffe27a,#ffc93c);
+    padding:14px 34px; border-radius:14px;
+    box-shadow:0 8px 0 #c98b00, 0 12px 22px rgba(0,0,0,.35);
+    transition:transform .08s, box-shadow .08s; letter-spacing:.5px;
+  }
+  .btn:active{transform:translateY(5px); box-shadow:0 3px 0 #c98b00,0 6px 12px rgba(0,0,0,.35);}
+  .btn.secondary{ background:linear-gradient(180deg,#7fd6ff,#36b3e6); color:#04293f; box-shadow:0 8px 0 #0a6a93,0 12px 22px rgba(0,0,0,.35);}
+  .btn.secondary:active{box-shadow:0 3px 0 #0a6a93,0 6px 12px rgba(0,0,0,.35);}
+
+  .boats{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center; margin-bottom:16px;}
+  .boat-card{
+    width:150px; cursor:pointer;
+    background:rgba(255,255,255,.06); border:2px solid rgba(255,255,255,.12);
+    border-radius:16px; padding:10px 9px; transition:transform .12s, border-color .12s, background .12s;
+  }
+  .boat-card:hover{transform:translateY(-4px); background:rgba(255,255,255,.12);}
+  .boat-card.sel{border-color:var(--gold); background:rgba(255,211,77,.16); transform:translateY(-4px);}
+  .boat-card canvas{width:100px; height:100px; margin:0 auto 4px;}
+  .boat-card .name{font-weight:800; font-size:15px; margin-bottom:6px;}
+  .stat{display:flex; align-items:center; gap:6px; font-size:11px; margin:3px 0;}
+  .stat span{width:54px; text-align:left; opacity:.8;}
+  .bar{flex:1; height:7px; border-radius:5px; background:rgba(255,255,255,.15); overflow:hidden;}
+  .bar > i{display:block; height:100%; border-radius:5px; background:linear-gradient(90deg,#9fe8ff,#ffd34d);}
+
+  .opts{display:flex; gap:22px; flex-wrap:wrap; justify-content:center; margin-bottom:18px;}
+  .optgroup{font-size:13px;}
+  .optgroup .lbl{opacity:.7; margin-bottom:6px; font-weight:700; text-transform:uppercase; letter-spacing:1px; font-size:11px;}
+  .seg{display:flex; gap:6px; flex-wrap:wrap; justify-content:center;}
+  .seg button{
+    cursor:pointer; border:2px solid rgba(255,255,255,.18); background:rgba(255,255,255,.06);
+    color:#eaf7ff; font-weight:700; padding:7px 14px; border-radius:10px; font-size:13px; transition:.12s;
+  }
+  .seg button.on{border-color:var(--gold); background:rgba(255,211,77,.18); color:#fff;}
+
+  #hud{ position:absolute; inset:0; z-index:5; pointer-events:none; font-weight:800;}
+  #hud .pill{
+    position:absolute; background:rgba(4,41,63,.66); border:1px solid rgba(255,255,255,.15);
+    border-radius:12px; padding:8px 14px; font-size:15px; backdrop-filter:blur(3px);
+  }
+  #pos{top:14px; left:14px; font-size:18px;}
+  #lap{top:14px; left:50%; transform:translateX(-50%);}
+  #timer{top:14px; right:14px;}
+  #best{top:56px; right:14px; font-size:12px; opacity:.85;}
+  #speedo{bottom:14px; left:14px; font-size:13px;}
+  #boostWrap{position:absolute; bottom:48px; left:14px; width:160px;}
+  #boostWrap .blbl{font-size:11px; opacity:.8; margin-bottom:3px;}
+  #boostBar{height:12px; border-radius:7px; background:rgba(0,0,0,.4); border:1px solid rgba(255,255,255,.2); overflow:hidden;}
+  #boostFill{height:100%; width:100%; background:linear-gradient(90deg,#3ad1ff,#ffd34d,#ff8a3c); transition:width .08s;}
+  #minimap{position:absolute; bottom:14px; right:14px; width:150px; height:94px; border-radius:10px; background:rgba(4,41,63,.6); border:1px solid rgba(255,255,255,.2);}
+  #countdown{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:120px; font-weight:900; color:var(--gold); text-shadow:0 6px 0 rgba(0,0,0,.3); pointer-events:none;}
+  #toast{ position:absolute; top:52%; left:50%; transform:translate(-50%,-50%); font-size:34px; font-weight:900; color:var(--gold); opacity:0; text-shadow:0 4px 0 rgba(0,0,0,.35); pointer-events:none; white-space:nowrap;}
+  .podium{font-size:19px; margin:6px 0 20px; line-height:1.85;}
+  .row{display:flex; gap:14px; flex-wrap:wrap; justify-content:center;}
+  .credit{position:absolute; bottom:10px; opacity:.5; font-size:11px;}
+  #muteBtn{ position:absolute; top:10px; right:10px; z-index:20; cursor:pointer; pointer-events:auto; background:rgba(4,41,63,.6); border:1px solid rgba(255,255,255,.2); color:#eaf7ff; border-radius:10px; padding:6px 10px; font-size:16px;}
+  #pauseBtn{ position:absolute; top:52px; left:14px; cursor:pointer; pointer-events:auto; background:rgba(4,41,63,.66); border:1px solid rgba(255,255,255,.2); color:#eaf7ff; border-radius:10px; padding:6px 11px; font-size:15px; font-weight:800;}
+  kbd{background:#eaf7ff; color:#06283a; border-radius:5px; padding:1px 7px; font-weight:800; font-size:12px;}
+
+  /* ---- Pièces & boutique ---- */
+  .coins-pill{
+    display:inline-flex; align-items:center; gap:6px;
+    background:rgba(255,211,77,.16); border:1px solid rgba(255,211,77,.5);
+    color:var(--gold); font-weight:900; font-size:16px;
+    padding:6px 14px; border-radius:20px; margin-bottom:14px;
+  }
+  .shop-grid{
+    display:flex; gap:14px; flex-wrap:wrap; justify-content:center;
+    max-width:760px; margin-bottom:18px;
+  }
+  .skin-card{
+    width:130px; background:rgba(255,255,255,.06);
+    border:2px solid rgba(255,255,255,.12); border-radius:16px; padding:10px 9px;
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+    transition:transform .12s, border-color .12s;
+  }
+  .skin-card:hover{transform:translateY(-3px);}
+  .skin-card.equipped{border-color:var(--gold); background:rgba(255,211,77,.14);}
+  .skin-card canvas{width:90px; height:90px;}
+  .skin-card .sname{font-weight:800; font-size:14px;}
+  .sbtn{
+    cursor:pointer; border:none; font-weight:800; font-size:13px; color:var(--ink);
+    background:linear-gradient(180deg,#7fd6ff,#36b3e6); padding:7px 12px; border-radius:10px;
+    width:100%; box-shadow:0 4px 0 #0a6a93;
+  }
+  .sbtn:active{transform:translateY(3px); box-shadow:0 1px 0 #0a6a93;}
+  .sbtn.buy{background:linear-gradient(180deg,#ffe27a,#ffc93c); box-shadow:0 4px 0 #c98b00;}
+  .sbtn.buy:active{box-shadow:0 1px 0 #c98b00;}
+  .sbtn.cant{filter:grayscale(.7) brightness(.8); cursor:not-allowed;}
+  .sbtn.eq{background:rgba(255,255,255,.15); color:#eaf7ff; box-shadow:none; cursor:default;}
+</style>
+</head>
+<body>
+<div id="game">
+  <canvas id="cv"></canvas>
+  <button id="muteBtn" title="Son">🔊</button>
+
+  <div id="hud" class="hidden">
+    <div id="pos" class="pill">1ᵉ / 4</div>
+    <div id="lap" class="pill">Tour 1/2</div>
+    <div id="timer" class="pill">0.0s</div>
+    <div id="best" class="pill">Record —</div>
+    <div id="speedo" class="pill">Vitesse 0</div>
+    <div id="boostWrap">
+      <div class="blbl">⚡ TURBO <kbd>Espace</kbd></div>
+      <div id="boostBar"><div id="boostFill"></div></div>
+    </div>
+    <canvas id="minimap" width="150" height="94"></canvas>
+    <button id="pauseBtn" title="Pause (Échap)">⏸</button>
+    <div id="countdown"></div>
+    <div id="toast"></div>
+  </div>
+
+  <!-- Écran pause -->
+  <div id="pauseScreen" class="screen hidden">
+    <h1>⏸ <span class="gold">Pause</span></h1>
+    <div class="row" style="flex-direction:column; gap:12px;">
+      <button class="btn" id="resumeBtn">REPRENDRE</button>
+      <button class="btn secondary" id="restartBtn">Recommencer</button>
+      <button class="btn secondary" id="quitBtn">Retour au menu</button>
+    </div>
+  </div>
+
+  <div id="titleScreen" class="screen">
+    <h1>⛵ <span class="gold">RÉGATE</span></h1>
+    <p class="sub">Choisis ton bateau et ton circuit, ramasse les <span class="gold">bonus</span> ⚡,
+       déclenche ton <span class="gold">turbo</span>, évite les rochers 🪨 et franchis le damier en tête&nbsp;!</p>
+    <button class="btn" id="playBtn">JOUER</button>
+    <div class="credit">Flèches ou ZQSD pour piloter · Espace = turbo</div>
+  </div>
+
+  <div id="selectScreen" class="screen hidden">
+    <h1 style="font-size:clamp(22px,5vw,36px)">Choisis ton <span class="gold">bateau</span></h1>
+    <div class="coins-pill" id="selCoins">🪙 0</div>
+    <div class="boats" id="boatList"></div>
+    <div class="opts">
+      <div class="optgroup">
+        <div class="lbl">Circuit</div>
+        <div class="seg" id="mapSeg"></div>
+      </div>
+      <div class="optgroup">
+        <div class="lbl">Difficulté</div>
+        <div class="seg" id="diffSeg">
+          <button data-v="0">Facile</button>
+          <button data-v="1" class="on">Normal</button>
+          <button data-v="2">Difficile</button>
+        </div>
+      </div>
+      <div class="optgroup">
+        <div class="lbl">Tours</div>
+        <div class="seg" id="lapSeg">
+          <button data-v="2" class="on">2</button>
+          <button data-v="3">3</button>
+          <button data-v="5">5</button>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <button class="btn" id="startBtn">DÉPART&nbsp;!</button>
+      <button class="btn secondary" id="shopBtn">🛒 Boutique</button>
+    </div>
+  </div>
+
+  <!-- Écran boutique -->
+  <div id="shopScreen" class="screen hidden">
+    <h1 style="font-size:clamp(22px,5vw,36px)">🛒 <span class="gold">Boutique</span></h1>
+    <div class="coins-pill" id="shopCoins">🪙 0</div>
+    <div class="shop-grid" id="shopGrid"></div>
+    <div class="row"><button class="btn secondary" id="shopBackBtn">← Retour</button></div>
+  </div>
+
+  <div id="endScreen" class="screen hidden">
+    <h1 id="endTitle">🏁 Arrivée&nbsp;!</h1>
+    <div class="podium" id="podium"></div>
+    <div class="row">
+      <button class="btn" id="againBtn">REJOUER</button>
+      <button class="btn secondary" id="shopBtn2">🛒 Boutique</button>
+      <button class="btn secondary" id="changeBtn">Menu</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(()=>{
+"use strict";
+
+// ===================== Bateaux =====================
+const BOATS = [
+  {id:0, name:"L'Éclair",   hull:"#ff5d5d", sail:"#ffe27a", topSpeed:4.7, accel:0.075, handling:0.055},
+  {id:1, name:"Le Récif",   hull:"#3ad17f", sail:"#d6ffe9", topSpeed:4.2, accel:0.060, handling:0.072},
+  {id:2, name:"L'Azur",     hull:"#4aa8ff", sail:"#cfe9ff", topSpeed:4.4, accel:0.068, handling:0.062},
+  {id:3, name:"L'Ouragan",  hull:"#b06bff", sail:"#efdcff", topSpeed:5.1, accel:0.085, handling:0.045},
+];
+const NAMES_AI = ["Vagabond","Tempête","Mistral","Sirène","Corsaire","Triton"];
+const DIFF = [ {name:"Facile",ai:0.80}, {name:"Normal",ai:0.92}, {name:"Difficile",ai:1.02} ];
+
+// ===================== Skins =====================
+const SKINS = [
+  {id:"classic", name:"Classique",   price:0,   native:true},
+  {id:"onyx",    name:"Onyx",        price:120, hull:"#2b2f36", sail:"#9aa0a8"},
+  {id:"gold",    name:"Or",          price:160, hull:"#ffcf3a", sail:"#fff4cf", glow:"rgba(255,200,60,.55)"},
+  {id:"ice",     name:"Glacier",     price:200, hull:"#6fd6ff", sail:"#eaffff", glow:"rgba(150,230,255,.55)"},
+  {id:"toxic",   name:"Toxique",     price:260, hull:"#9bff3a", sail:"#22451a", glow:"rgba(150,255,60,.5)"},
+  {id:"lava",    name:"Lave",        price:320, hull:"#ff4d2e", sail:"#ffb15a", glow:"rgba(255,90,30,.6)"},
+  {id:"royal",   name:"Royal",       price:380, hull:"#7a3cff", sail:"#ffd34d", glow:"rgba(150,80,255,.55)"},
+  {id:"rainbow", name:"Arc-en-ciel", price:600, rainbow:true,  sail:"#ffffff", glow:"rgba(255,255,255,.45)"},
+];
+function getSkin(id){ return SKINS.find(s=>s.id===id)||SKINS[0]; }
+
+// ===================== Porte-monnaie & inventaire (persistant) =====================
+let coins = parseInt(localStorage.getItem('regate_coins')||'0',10);
+let ownedSkins = (()=>{ try{ return JSON.parse(localStorage.getItem('regate_skins')||'["classic"]'); }catch(e){ return ["classic"]; } })();
+let equippedId = localStorage.getItem('regate_equipped')||'classic';
+function saveCoins(){ localStorage.setItem('regate_coins', coins); }
+function saveSkins(){ localStorage.setItem('regate_skins', JSON.stringify(ownedSkins)); localStorage.setItem('regate_equipped', equippedId); }
+function skinColors(b, skin){
+  if(!skin || skin.native) return {hull:b.hull, sail:b.sail, glow:null};
+  let hull = skin.rainbow ? `hsl(${(performance.now()/12)%360},85%,60%)` : skin.hull;
+  return {hull, sail:skin.sail, glow:skin.glow||null};
+}
+
+// ===================== Circuits =====================
+const MAPS = [
+  {
+    name:"Baie du Récif",
+    world:{w:2400,h:1500},
+    checkpoints:[
+      {x:400,y:1150},{x:400,y:380},{x:900,y:250},{x:1500,y:380},
+      {x:2000,y:300},{x:2050,y:900},{x:1500,y:1150},{x:950,y:1200},
+    ],
+    rocks:[
+      {x:700,y:760,r:40},{x:1250,y:760,r:48},{x:1750,y:640,r:38},{x:1200,y:430,r:34},
+      {x:560,y:760,r:30},{x:1700,y:1000,r:44},{x:1000,y:900,r:36},{x:1500,y:850,r:30},
+    ],
+  },
+  {
+    name:"Grand Lagon",
+    world:{w:2600,h:1550},
+    checkpoints:[
+      {x:380,y:790},{x:560,y:330},{x:1300,y:230},{x:2040,y:330},
+      {x:2240,y:790},{x:2040,y:1240},{x:1300,y:1340},{x:560,y:1240},
+    ],
+    rocks:[
+      {x:1300,y:520,r:50},{x:1300,y:1050,r:50},{x:880,y:790,r:40},{x:1720,y:790,r:40},
+    ],
+  },
+  {
+    name:"Archipel",
+    world:{w:2500,h:1750},
+    checkpoints:[
+      {x:360,y:1480},{x:320,y:920},{x:680,y:560},{x:1180,y:820},
+      {x:1680,y:520},{x:2160,y:860},{x:2120,y:1460},{x:1200,y:1560},
+    ],
+    rocks:[
+      {x:560,y:1180,r:30},{x:520,y:740,r:32},{x:920,y:660,r:28},{x:980,y:1060,r:30},
+      {x:1420,y:700,r:30},{x:1430,y:1120,r:32},{x:1880,y:660,r:28},{x:1900,y:1120,r:30},
+      {x:760,y:1480,r:28},{x:1720,y:1420,r:30},{x:1450,y:380,r:30},
+    ],
+  },
+];
+
+// variables actives (remplies par applyMap)
+let CHECKPOINTS=[], ROCKS=[], WORLD={w:2400,h:1500}, PICKUPS=[];
+let mapIdx=0;
+function applyMap(i){
+  mapIdx=i;
+  CHECKPOINTS = MAPS[i].checkpoints;
+  ROCKS = MAPS[i].rocks;
+  WORLD = MAPS[i].world;
+}
+
+// ===================== Canvas =====================
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+const mm=document.getElementById('minimap'), mmx=mm.getContext('2d');
+let W=960,H=620;
+function resize(){ const r=cv.getBoundingClientRect(); cv.width=r.width; cv.height=r.height; W=cv.width; H=cv.height; }
+window.addEventListener('resize', resize);
+
+// ===================== État =====================
+let state="title";
+let selected=0, diffIdx=1, LAPS=2;
+let racers=[], player=null;
+let raceTime=0, countdown=0;
+let camera={x:0,y:0}, wakeParticles=[], shake=0, bestTime=null, toastT=0, paused=false;
+
+function bestKey(){ return `regate_best_${mapIdx}_${selected}_${LAPS}_${diffIdx}`; }
+function loadBest(){ const v=localStorage.getItem(bestKey()); bestTime=v?parseFloat(v):null; }
+function saveBest(t){ if(bestTime===null||t<bestTime){ bestTime=t; localStorage.setItem(bestKey(),t.toFixed(2)); return true;} return false; }
+
+// ===================== Son (uniquement événements) =====================
+let actx=null, muted=false;
+function audio(){ if(!actx){ try{ actx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } return actx; }
+function beep(freq,dur=0.12,type='square',vol=0.18){
+  const a=audio(); if(!a||muted) return;
+  const o=a.createOscillator(), g=a.createGain();
+  o.type=type; o.frequency.value=freq;
+  g.gain.setValueAtTime(vol,a.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+dur);
+  o.connect(g); g.connect(a.destination);
+  o.start(); o.stop(a.currentTime+dur);
+}
+
+// ===================== Entrées =====================
+const keys={};
+addEventListener('keydown',e=>{
+  if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"," "].includes(e.key)) e.preventDefault();
+  keys[e.key.toLowerCase()]=true; if(e.key===' ') keys['space']=true;
+});
+addEventListener('keyup',e=>{ keys[e.key.toLowerCase()]=false; if(e.key===' ') keys['space']=false; });
+addEventListener('keydown',e=>{ if((e.key==='Escape'||e.key.toLowerCase()==='p') && state==='race') togglePause(); });
+function input(n){
+  if(n==='up')return keys['arrowup']||keys['z']||keys['w'];
+  if(n==='down')return keys['arrowdown']||keys['s'];
+  if(n==='left')return keys['arrowleft']||keys['q']||keys['a'];
+  if(n==='right')return keys['arrowright']||keys['d'];
+  if(n==='boost')return keys['space'];
+}
+
+// ===================== Pickups =====================
+function buildPickups(){
+  PICKUPS=[];
+  for(let i=0;i<CHECKPOINTS.length;i++){
+    const a=CHECKPOINTS[i], b=CHECKPOINTS[(i+1)%CHECKPOINTS.length];
+    let mx=(a.x+b.x)/2, my=(a.y+b.y)/2;
+    for(const rk of ROCKS){
+      const dx=mx-rk.x, dy=my-rk.y, d=Math.hypot(dx,dy);
+      if(d<rk.r+40){ const n=(rk.r+45)/(d||1); mx=rk.x+dx*n; my=rk.y+dy*n; }
+    }
+    PICKUPS.push({x:mx,y:my,taken:false,t:0});
+  }
+}
+
+// ===================== Coureur =====================
+function makeRacer(boat,isPlayer,name){
+  const c0=CHECKPOINTS[0], c1=CHECKPOINTS[1];
+  const a0=Math.atan2(c1.y-c0.y, c1.x-c0.x);
+  return {
+    boat,isPlayer,name,
+    x:c0.x, y:c0.y, angle:a0, speed:0,
+    cp:1, lap:0, finished:false, finishTime:0, rank:0,
+    boost:1, boosting:false, boostTime:0, stuck:0,
+    aiSkill:0.80+Math.random()*0.16, aiJitter:Math.random()*1000,
+  };
+}
+
+function startRace(){
+  loadBest(); buildPickups();
+  racers=[];
+  player=makeRacer(BOATS[selected],true,"Toi");
+  player.skin=getSkin(equippedId);
+  racers.push(player);
+  const others=BOATS.filter(b=>b.id!==selected);
+  const names=[...NAMES_AI].sort(()=>Math.random()-0.5);
+  others.forEach((b,i)=>racers.push(makeRacer(b,false,names[i])));
+
+  // grille de départ : alignée derrière le damier, dans l'axe cp0->cp1
+  const c0=CHECKPOINTS[0], c1=CHECKPOINTS[1];
+  const a0=Math.atan2(c1.y-c0.y, c1.x-c0.x), perp=a0+Math.PI/2;
+  racers.forEach((r,i)=>{
+    const back=20+Math.floor(i/2)*44;
+    const side=(i%2?1:-1)*30;
+    r.x=c0.x-Math.cos(a0)*back+Math.cos(perp)*side;
+    r.y=c0.y-Math.sin(a0)*back+Math.sin(perp)*side;
+    r.angle=a0;
+  });
+
+  // caméra immédiatement sur le joueur
+  camera.x=Math.max(0,Math.min(WORLD.w-W, player.x-W/2));
+  camera.y=Math.max(0,Math.min(WORLD.h-H, player.y-H/2));
+
+  raceTime=0; countdown=3.2; wakeParticles=[]; shake=0; paused=false;
+  state="race";
+  document.getElementById('hud').classList.remove('hidden');
+  document.getElementById('best').textContent = bestTime!==null?'Record '+bestTime.toFixed(1)+'s':'Record —';
+  hideAllScreens();
+}
+
+// ===================== Physique + IA =====================
+function updateRacer(r,dt){
+  const b=r.boat;
+  let throttle=0, steer=0;
+  const diffAI=DIFF[diffIdx].ai;
+
+  if(r.isPlayer){
+    if(input('up'))throttle=1;
+    if(input('down'))throttle=-0.5;
+    if(input('left'))steer=-1;
+    if(input('right'))steer=1;
+    r.boosting=input('boost')&&r.boost>0.02&&countdown<=0;
+    if(r.boosting)r.boost=Math.max(0,r.boost-dt*0.5); else r.boost=Math.min(1,r.boost+dt*0.18);
+  } else {
+    const target=CHECKPOINTS[r.cp%CHECKPOINTS.length];
+    let desired=Math.atan2(target.y-r.y, target.x-r.x);
+
+    // --- évitement des rochers ---
+    let nearRock=false;
+    for(const rk of ROCKS){
+      const dx=rk.x-r.x, dy=rk.y-r.y, dist=Math.hypot(dx,dy);
+      const danger=rk.r+135;
+      if(dist<danger){
+        let aRock=Math.atan2(dy,dx), da=aRock-desired;
+        while(da>Math.PI)da-=Math.PI*2; while(da<-Math.PI)da+=Math.PI*2;
+        if(Math.abs(da)<1.25){ // rocher ~ devant
+          const force=(danger-dist)/danger;
+          desired-=(da>=0?1:-1)*force*1.5;
+          nearRock=true;
+        }
+      }
+    }
+
+    let d=desired-r.angle;
+    while(d>Math.PI)d-=Math.PI*2; while(d<-Math.PI)d+=Math.PI*2;
+    steer=Math.max(-1,Math.min(1,d*2.2))*r.aiSkill;
+    throttle=Math.abs(d)>0.9?0.6:1;
+    if(nearRock) throttle=Math.min(throttle,0.85);
+    throttle*=(0.92+0.08*Math.sin(raceTime*2+r.aiJitter));
+
+    // --- désembourbage si bloqué ---
+    if(Math.abs(r.speed)<0.4 && countdown<=0) r.stuck+=dt; else r.stuck=0;
+    if(r.stuck>0.45){
+      throttle=-0.85;
+      steer=(Math.floor(r.aiJitter)%2?1:-1);
+      r.boosting=false;
+      if(r.stuck>1.1) r.stuck=0;
+    } else {
+      // turbo IA en ligne droite
+      r.boosting=(Math.abs(d)<0.3&&r.boost>0.35&&countdown<=0&&Math.random()<0.05) ||
+                 (r.boosting&&r.boost>0.05&&Math.abs(d)<0.6);
+    }
+    if(r.boosting)r.boost=Math.max(0,r.boost-dt*0.5); else r.boost=Math.min(1,r.boost+dt*0.12);
+  }
+
+  if(countdown>0){ throttle=0; r.boosting=false; }
+
+  let maxS=b.topSpeed*(r.isPlayer?1:diffAI);
+  if(r.boostTime>0){ r.boostTime-=dt; maxS*=1.35; }
+  if(r.boosting) maxS*=1.45;
+
+  const acc=b.accel*(r.boosting?1.7:1);
+  if(throttle>0)r.speed+=acc*throttle*dt*60;
+  else if(throttle<0)r.speed+=acc*throttle*0.6*dt*60;
+  else r.speed*=Math.pow(0.985,dt*60);
+  r.speed*=Math.pow(0.992,dt*60);
+  r.speed=Math.max(-maxS*0.4,Math.min(maxS,r.speed));
+
+  const speedFactor=Math.min(1,Math.abs(r.speed)/(b.topSpeed*0.5));
+  r.angle+=steer*b.handling*speedFactor*dt*60*(r.speed<0?-1:1);
+
+  r.x+=Math.cos(r.angle)*r.speed*dt*60;
+  r.y+=Math.sin(r.angle)*r.speed*dt*60;
+
+  const m=40;
+  if(r.x<m){r.x=m;r.speed*=0.4;} if(r.x>WORLD.w-m){r.x=WORLD.w-m;r.speed*=0.4;}
+  if(r.y<m){r.y=m;r.speed*=0.4;} if(r.y>WORLD.h-m){r.y=WORLD.h-m;r.speed*=0.4;}
+
+  // collision rochers
+  for(const rk of ROCKS){
+    const dx=r.x-rk.x, dy=r.y-rk.y, dist=Math.hypot(dx,dy), min=rk.r+16;
+    if(dist<min){
+      const nx=dx/(dist||1), ny=dy/(dist||1);
+      r.x=rk.x+nx*min; r.y=rk.y+ny*min;
+      if(r.isPlayer&&Math.abs(r.speed)>1.8){ shake=Math.min(12,Math.abs(r.speed)*2); beep(90,0.16,'sawtooth',0.22); }
+      r.speed*=0.35; r.boostTime=0;
+    }
+  }
+
+  // pickups
+  for(const p of PICKUPS){
+    if(p.taken) continue;
+    if(Math.hypot(p.x-r.x,p.y-r.y)<34){
+      p.taken=true; p.t=2.5;
+      r.boostTime=Math.max(r.boostTime,1.6);
+      r.speed=Math.min(b.topSpeed*1.4,r.speed+1.2);
+      if(r.isPlayer){ beep(880,0.1,'triangle',0.18); beep(1320,0.12,'triangle',0.13); showToast('⚡ TURBO !'); }
+    }
+  }
+
+  // bouées + ligne d'arrivée (le tour se valide AU passage du damier = cp index 0)
+  if(!r.finished){
+    const idx=r.cp%CHECKPOINTS.length;
+    const tgt=CHECKPOINTS[idx];
+    if(Math.hypot(tgt.x-r.x,tgt.y-r.y)<95){
+      if(idx===0){ // franchit le damier
+        r.lap++;
+        if(r.isPlayer&&r.lap<LAPS) beep(660,0.12,'square',0.16);
+        if(r.lap>=LAPS){ r.finished=true; r.finishTime=raceTime; }
+      }
+      r.cp++;
+    }
+  }
+
+  const sp=Math.abs(r.speed);
+  if(sp>1&&Math.random()<(r.boosting?0.95:0.55)){
+    wakeParticles.push({
+      x:r.x-Math.cos(r.angle)*16+(Math.random()*8-4),
+      y:r.y-Math.sin(r.angle)*16+(Math.random()*8-4),
+      r:3+Math.random()*4, life:1, boost:r.boosting||r.boostTime>0
+    });
+  }
+}
+
+function progressOf(r){ return r.lap*CHECKPOINTS.length+r.cp; }
+function updateRanks(){
+  const order=[...racers].sort((a,b)=>{
+    if(a.finished&&b.finished)return a.finishTime-b.finishTime;
+    if(a.finished)return -1; if(b.finished)return 1;
+    const pa=progressOf(a),pb=progressOf(b);
+    if(pb!==pa)return pb-pa;
+    const ta=CHECKPOINTS[a.cp%CHECKPOINTS.length],tb=CHECKPOINTS[b.cp%CHECKPOINTS.length];
+    return Math.hypot(ta.x-a.x,ta.y-a.y)-Math.hypot(tb.x-b.x,tb.y-b.y);
+  });
+  order.forEach((r,i)=>r.rank=i+1);
+}
+
+function showToast(t){ document.getElementById('toast').textContent=t; toastT=1.1; }
+
+function togglePause(force){
+  if(state!=="race") return;
+  paused = (force===undefined)?!paused:force;
+  document.getElementById('pauseScreen').classList.toggle('hidden', !paused);
+}
+
+// ===================== Dessin =====================
+function drawWater(){
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#0c84b4'); g.addColorStop(1,'#085d86');
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  ctx.globalAlpha=0.10; ctx.strokeStyle='#dff6ff'; ctx.lineWidth=2;
+  const off=(raceTime*30)%40;
+  for(let y=-40;y<H+40;y+=40){
+    ctx.beginPath();
+    for(let x=-40;x<W+40;x+=20){
+      const yy=y+Math.sin((x+camera.x*0.3+raceTime*40)/60)*6+off-((camera.y*0.3)%40);
+      if(x===-40)ctx.moveTo(x,yy);else ctx.lineTo(x,yy);
+    }
+    ctx.stroke();
+  }
+  ctx.globalAlpha=1;
+}
+function w2s(x,y){ return [x-camera.x,y-camera.y]; }
+
+function drawTrack(){
+  ctx.save();
+  ctx.lineWidth=110; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.strokeStyle='rgba(255,255,255,0.06)';
+  ctx.beginPath();
+  CHECKPOINTS.forEach((c,i)=>{ const [sx,sy]=w2s(c.x,c.y); i===0?ctx.moveTo(sx,sy):ctx.lineTo(sx,sy); });
+  ctx.closePath(); ctx.stroke(); ctx.restore();
+
+  // damier d'arrivée orienté perpendiculaire à l'axe cp0->cp1
+  const s=CHECKPOINTS[0], n=CHECKPOINTS[1];
+  const [lx,ly]=w2s(s.x,s.y);
+  const ang=Math.atan2(n.y-s.y,n.x-s.x);
+  ctx.save(); ctx.translate(lx,ly); ctx.rotate(ang);
+  const tile=14;
+  for(let i=-4;i<4;i++) for(let j=0;j<2;j++){
+    ctx.fillStyle=((i+j)%2===0)?'#ffffff':'#1a1a1a';
+    ctx.fillRect(-tile, i*tile, tile*2, tile); // bande perpendiculaire
+  }
+  ctx.restore();
+
+  // rochers
+  for(const rk of ROCKS){
+    const [sx,sy]=w2s(rk.x,rk.y);
+    if(sx<-90||sx>W+90||sy<-90||sy>H+90)continue;
+    ctx.beginPath(); ctx.arc(sx,sy+4,rk.r,0,7); ctx.fillStyle='rgba(0,0,0,.18)'; ctx.fill();
+    ctx.beginPath(); ctx.arc(sx,sy,rk.r,0,7);
+    const rg=ctx.createRadialGradient(sx-rk.r*0.3,sy-rk.r*0.3,4,sx,sy,rk.r);
+    rg.addColorStop(0,'#9aa5ad'); rg.addColorStop(1,'#54616b');
+    ctx.fillStyle=rg; ctx.fill();
+    ctx.lineWidth=3; ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.stroke();
+    ctx.beginPath(); ctx.arc(sx,sy,rk.r+5,0,7); ctx.strokeStyle='rgba(255,255,255,.35)'; ctx.lineWidth=2; ctx.stroke();
+  }
+
+  // pickups
+  for(const p of PICKUPS){
+    const [sx,sy]=w2s(p.x,p.y);
+    if(sx<-40||sx>W+40||sy<-40||sy>H+40)continue;
+    if(p.taken){
+      if(p.t>0){ ctx.globalAlpha=Math.max(0,p.t/2.5);
+        ctx.beginPath(); ctx.arc(sx,sy,18+(2.5-p.t)*20,0,7); ctx.strokeStyle='#ffd34d'; ctx.lineWidth=3; ctx.stroke();
+        ctx.globalAlpha=1; }
+      continue;
+    }
+    const pulse=4*Math.sin(raceTime*5);
+    ctx.beginPath(); ctx.arc(sx,sy,18+pulse,0,7); ctx.strokeStyle='rgba(255,211,77,.5)'; ctx.lineWidth=4; ctx.stroke();
+    ctx.font='bold 22px Segoe UI'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillStyle='#ffd34d'; ctx.fillText('⚡',sx,sy+1); ctx.textBaseline='alphabetic';
+  }
+
+  // bouées
+  CHECKPOINTS.forEach((c,i)=>{
+    const [sx,sy]=w2s(c.x,c.y);
+    if(sx<-60||sx>W+60||sy<-60||sy>H+60)return;
+    const next=(player&&player.cp%CHECKPOINTS.length===i&&!player.finished);
+    ctx.beginPath(); ctx.arc(sx,sy,26,0,7); ctx.fillStyle=next?'rgba(255,211,77,.25)':'rgba(255,255,255,.08)'; ctx.fill();
+    ctx.beginPath(); ctx.arc(sx,sy,12,0,7); ctx.fillStyle=next?'#ffd34d':'#ff7a3c'; ctx.fill();
+    ctx.lineWidth=3; ctx.strokeStyle='#ffffff'; ctx.stroke();
+    ctx.beginPath(); ctx.arc(sx,sy,5,0,7); ctx.fillStyle='#fff'; ctx.fill();
+  });
+}
+
+function drawBoat(c2,b,s,skin){
+  const col=skinColors(b,skin);
+  if(col.glow){
+    const g=c2.createRadialGradient(0,0,s*0.5,0,0,s*1.9);
+    g.addColorStop(0,col.glow); g.addColorStop(1,'rgba(0,0,0,0)');
+    c2.fillStyle=g; c2.beginPath(); c2.arc(0,0,s*1.9,0,7); c2.fill();
+  }
+  c2.beginPath(); c2.moveTo(1.5*s,0);
+  c2.quadraticCurveTo(0.4*s,0.7*s,-1.1*s,0.55*s);
+  c2.lineTo(-1.1*s,-0.55*s);
+  c2.quadraticCurveTo(0.4*s,-0.7*s,1.5*s,0); c2.closePath();
+  c2.fillStyle=col.hull; c2.fill();
+  c2.lineWidth=Math.max(1,s*0.12); c2.strokeStyle='rgba(0,0,0,.35)'; c2.stroke();
+  c2.beginPath(); c2.ellipse(0,0,0.85*s,0.32*s,0,0,7); c2.fillStyle='rgba(255,255,255,.85)'; c2.fill();
+  c2.fillStyle='#5a3b1e'; c2.fillRect(-0.05*s,-0.08*s,0.1*s,0.16*s);
+  c2.beginPath(); c2.moveTo(0.05*s,0); c2.lineTo(0.05*s,-1.15*s); c2.lineTo(0.95*s,-0.05*s); c2.closePath();
+  c2.fillStyle=col.sail; c2.fill();
+  c2.strokeStyle='rgba(0,0,0,.2)'; c2.lineWidth=Math.max(1,s*0.06); c2.stroke();
+}
+
+function drawRacers(){
+  for(const p of wakeParticles){
+    const [sx,sy]=w2s(p.x,p.y);
+    ctx.beginPath(); ctx.arc(sx,sy,p.r*(0.6+p.life),0,7);
+    ctx.fillStyle=p.boost?`rgba(255,200,90,${0.32*p.life})`:`rgba(255,255,255,${0.22*p.life})`; ctx.fill();
+  }
+  const order=[...racers].sort((a,b)=>(a.isPlayer?1:0)-(b.isPlayer?1:0));
+  for(const r of order){
+    const [sx,sy]=w2s(r.x,r.y);
+    if(sx<-80||sx>W+80||sy<-80||sy>H+80)continue;
+    ctx.save(); ctx.translate(sx,sy); ctx.rotate(r.angle);
+    if(r.boosting||r.boostTime>0){
+      ctx.save(); ctx.translate(-20,0);
+      for(let k=0;k<3;k++){ ctx.beginPath(); ctx.arc(-k*7-Math.random()*4,0,7-k*2,0,7);
+        ctx.fillStyle=`rgba(255,${160-k*40},60,${0.7-k*0.2})`; ctx.fill(); }
+      ctx.restore();
+    }
+    ctx.save(); ctx.translate(0,5); ctx.scale(1,0.5);
+    ctx.beginPath(); ctx.arc(0,0,26,0,7); ctx.fillStyle='rgba(0,0,0,.18)'; ctx.fill(); ctx.restore();
+    drawBoat(ctx,r.boat,17,r.skin); ctx.restore();
+    ctx.font='bold 12px Segoe UI'; ctx.textAlign='center';
+    ctx.fillStyle=r.isPlayer?'#ffd34d':'rgba(255,255,255,.85)';
+    ctx.strokeStyle='rgba(0,0,0,.6)'; ctx.lineWidth=3;
+    ctx.strokeText(r.name,sx,sy-26); ctx.fillText(r.name,sx,sy-26);
+  }
+}
+
+function drawMinimap(){
+  mmx.clearRect(0,0,150,94);
+  const sx=150/WORLD.w, sy=94/WORLD.h;
+  mmx.strokeStyle='rgba(255,255,255,.25)'; mmx.lineWidth=6; mmx.lineCap='round'; mmx.lineJoin='round';
+  mmx.beginPath();
+  CHECKPOINTS.forEach((c,i)=>{ const x=c.x*sx,y=c.y*sy; i===0?mmx.moveTo(x,y):mmx.lineTo(x,y); });
+  mmx.closePath(); mmx.stroke();
+  for(const r of racers){ mmx.beginPath(); mmx.arc(r.x*sx,r.y*sy,r.isPlayer?3.5:2.5,0,7);
+    mmx.fillStyle=r.isPlayer?'#ffd34d':r.boat.hull; mmx.fill(); }
+}
+
+// ===================== Boucle =====================
+let last=performance.now();
+function loop(now){
+  const dt=Math.min(0.05,(now-last)/1000); last=now;
+  if(state==="race" && !paused){
+    if(countdown>0){
+      const prev=Math.ceil(countdown-0.2);
+      countdown-=dt;
+      const cur=Math.ceil(countdown-0.2);
+      document.getElementById('countdown').textContent=countdown>0.2?(cur||"GO!"):"GO!";
+      if(cur!==prev&&cur>0)beep(440,0.15,'square',0.18);
+      if(countdown<=0){ countdown=0; document.getElementById('countdown').textContent=""; beep(880,0.3,'square',0.22); }
+    } else if(racers.some(r=>!r.finished)){ raceTime+=dt; }
+
+    racers.forEach(r=>updateRacer(r,dt));
+    for(let i=wakeParticles.length-1;i>=0;i--){ wakeParticles[i].life-=dt*1.6; if(wakeParticles[i].life<=0)wakeParticles.splice(i,1); }
+    for(const p of PICKUPS){ if(p.taken&&p.t>0)p.t-=dt; }
+    updateRanks();
+
+    let tx=player.x-W/2, ty=player.y-H/2;
+    camera.x+=(tx-camera.x)*0.12; camera.y+=(ty-camera.y)*0.12;
+    camera.x=Math.max(0,Math.min(WORLD.w-W,camera.x));
+    camera.y=Math.max(0,Math.min(WORLD.h-H,camera.y));
+    if(shake>0){ shake*=0.85; if(shake<0.3)shake=0; }
+    const ox=(Math.random()*2-1)*shake, oy=(Math.random()*2-1)*shake;
+
+    document.getElementById('pos').textContent=`${player.rank}ᵉ / ${racers.length}`;
+    document.getElementById('lap').textContent=`Tour ${Math.min(player.lap+1,LAPS)}/${LAPS}`;
+    document.getElementById('timer').textContent=raceTime.toFixed(1)+'s';
+    document.getElementById('speedo').textContent='Vitesse '+Math.round(Math.abs(player.speed)*22);
+    document.getElementById('boostFill').style.width=(player.boost*100)+'%';
+    if(toastT>0){ toastT-=dt; const el=document.getElementById('toast'); el.style.opacity=Math.min(1,toastT*2); el.style.transform=`translate(-50%,${-50-(1.1-toastT)*20}%)`; }
+    else document.getElementById('toast').style.opacity=0;
+
+    if(player.finished&&state==="race"){ finishRace(); }
+
+    ctx.save(); ctx.translate(ox,oy);
+    drawWater(); drawTrack(); drawRacers();
+    ctx.restore();
+    drawMinimap();
+  }
+  requestAnimationFrame(loop);
+}
+
+// ===================== Fin =====================
+function finishRace(){
+  updateRanks();
+  state="end";
+  document.getElementById('hud').classList.add('hidden');
+  const order=[...racers].sort((a,b)=>a.rank-b.rank);
+  const place=player.rank;
+  const medals=["🥇","🥈","🥉","4ᵉ"];
+  const isRecord=saveBest(player.finishTime);
+
+  // --- gain de pièces selon le classement ---
+  const rewardTable=[100,60,40,25];
+  const diffMult=[1.0,1.3,1.6][diffIdx];
+  const base=rewardTable[place-1]||15;
+  const lapBonus=Math.max(0,(LAPS-2))*10;
+  const recordBonus=isRecord?40:0;
+  const earned=Math.round((base+lapBonus)*diffMult)+recordBonus;
+  coins+=earned; saveCoins();
+
+  document.getElementById('endTitle').innerHTML=
+    place===1?"🏆 <span class='gold'>VICTOIRE&nbsp;!</span>"
+    :place<=3?`${medals[place-1]} Joli podium&nbsp;!`:"🏁 Course terminée";
+  if(place===1){ beep(660,0.15,'square',0.2); setTimeout(()=>beep(880,0.15,'square',0.2),140); setTimeout(()=>beep(1100,0.25,'square',0.2),280); }
+  let html="";
+  order.forEach((r,i)=>{
+    const t=r.finished?r.finishTime.toFixed(1)+'s':'abandon';
+    html+=`<div ${r.isPlayer?"style='color:#ffd34d;font-weight:900'":""}>${medals[i]||(i+1)+'ᵉ'} ${r.name} — ${r.boat.name} <small>(${t})</small></div>`;
+  });
+  html+=`<div style="margin-top:10px;font-size:14px;opacity:.85">Ton temps : <b>${player.finishTime.toFixed(1)}s</b>`+
+        (isRecord?` <span class="gold">— NOUVEAU RECORD ! ⭐</span>`:(bestTime!==null?` · Record : ${bestTime.toFixed(1)}s`:''))+`</div>`;
+  html+=`<div style="margin-top:8px;font-size:16px"><span class="gold">+${earned} 🪙</span>`+
+        (recordBonus?` <small style="opacity:.8">(dont +${recordBonus} record)</small>`:'')+
+        ` &nbsp;·&nbsp; Total : <b class="gold">${coins} 🪙</b></div>`;
+  document.getElementById('podium').innerHTML=html;
+  showScreen('endScreen');
+}
+
+// ===================== UI =====================
+function hideAllScreens(){ document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden')); }
+function showScreen(id){ hideAllScreens(); document.getElementById(id).classList.remove('hidden'); }
+
+function buildShop(){
+  document.getElementById('shopCoins').textContent='🪙 '+coins;
+  const g=document.getElementById('shopGrid'); g.innerHTML='';
+  SKINS.forEach(sk=>{
+    const owned=ownedSkins.includes(sk.id), equipped=equippedId===sk.id;
+    const card=document.createElement('div'); card.className='skin-card'+(equipped?' equipped':'');
+    const c=document.createElement('canvas'); c.width=90; c.height=90;
+    const cc=c.getContext('2d'); cc.translate(45,50); cc.rotate(-Math.PI/2); drawBoat(cc,BOATS[selected],22,sk);
+    card.appendChild(c);
+    const nm=document.createElement('div'); nm.className='sname'; nm.textContent=sk.name; card.appendChild(nm);
+    const btn=document.createElement('button'); btn.className='sbtn';
+    if(equipped){ btn.textContent='✓ Équipé'; btn.classList.add('eq'); }
+    else if(owned){ btn.textContent='Équiper'; btn.onclick=()=>{ equippedId=sk.id; saveSkins(); beep(660,.08,'triangle',.16); buildShop(); }; }
+    else {
+      btn.innerHTML='🪙 '+sk.price; btn.classList.add('buy');
+      if(coins<sk.price) btn.classList.add('cant');
+      btn.onclick=()=>{
+        if(coins>=sk.price){ coins-=sk.price; ownedSkins.push(sk.id); equippedId=sk.id; saveCoins(); saveSkins();
+          beep(880,.1,'triangle',.18); setTimeout(()=>beep(1320,.12,'triangle',.14),90); buildShop(); }
+        else { beep(150,.18,'sawtooth',.2); }
+      };
+    }
+    card.appendChild(btn); g.appendChild(card);
+  });
+}
+
+function buildSelect(){
+  document.getElementById('selCoins').textContent='🪙 '+coins;
+  const list=document.getElementById('boatList'); list.innerHTML='';
+  BOATS.forEach(b=>{
+    const card=document.createElement('div');
+    card.className='boat-card'+(b.id===selected?' sel':''); card.dataset.id=b.id;
+    const c=document.createElement('canvas'); c.width=100; c.height=100;
+    const cc=c.getContext('2d'); cc.translate(50,55); cc.rotate(-Math.PI/2); drawBoat(cc,b,24);
+    card.appendChild(c);
+    const nm=document.createElement('div'); nm.className='name'; nm.textContent=b.name; card.appendChild(nm);
+    [['Vitesse',b.topSpeed/5.2],['Accél.',b.accel/0.09],['Maniab.',b.handling/0.075]].forEach(([lbl,v])=>{
+      const row=document.createElement('div'); row.className='stat';
+      row.innerHTML=`<span>${lbl}</span><div class="bar"><i style="width:${Math.round(v*100)}%"></i></div>`;
+      card.appendChild(row);
+    });
+    card.addEventListener('click',()=>{ selected=b.id;
+      document.querySelectorAll('.boat-card').forEach(x=>x.classList.toggle('sel',+x.dataset.id===selected)); });
+    list.appendChild(card);
+  });
+  // circuits
+  const ms=document.getElementById('mapSeg'); ms.innerHTML='';
+  MAPS.forEach((m,i)=>{
+    const btn=document.createElement('button'); btn.textContent=m.name; btn.dataset.v=i;
+    if(i===mapIdx) btn.classList.add('on');
+    btn.onclick=()=>{ applyMap(i); [...ms.children].forEach(c=>c.classList.toggle('on',c===btn)); };
+    ms.appendChild(btn);
+  });
+}
+
+document.getElementById('diffSeg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return;
+  diffIdx=+b.dataset.v; [...e.currentTarget.children].forEach(c=>c.classList.toggle('on',c===b)); });
+document.getElementById('lapSeg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return;
+  LAPS=+b.dataset.v; [...e.currentTarget.children].forEach(c=>c.classList.toggle('on',c===b)); });
+
+document.getElementById('playBtn').onclick=()=>{ audio(); buildSelect(); state="select"; showScreen('selectScreen'); };
+document.getElementById('startBtn').onclick=()=>{ audio(); if(actx&&actx.state==='suspended')actx.resume(); startRace(); };
+document.getElementById('againBtn').onclick=()=>{ if(actx&&actx.state==='suspended')actx.resume(); startRace(); };
+document.getElementById('changeBtn').onclick=()=>{ buildSelect(); state="select"; showScreen('selectScreen'); };
+document.getElementById('shopBtn').onclick=()=>{ audio(); buildShop(); showScreen('shopScreen'); };
+document.getElementById('shopBtn2').onclick=()=>{ audio(); buildShop(); showScreen('shopScreen'); };
+document.getElementById('shopBackBtn').onclick=()=>{ buildSelect(); showScreen('selectScreen'); };
+document.getElementById('muteBtn').onclick=()=>{ muted=!muted; document.getElementById('muteBtn').textContent=muted?'🔇':'🔊'; };
+document.getElementById('pauseBtn').onclick=()=>togglePause();
+document.getElementById('resumeBtn').onclick=()=>togglePause(false);
+document.getElementById('restartBtn').onclick=()=>{ togglePause(false); if(actx&&actx.state==='suspended')actx.resume(); startRace(); };
+document.getElementById('quitBtn').onclick=()=>{
+  paused=false; document.getElementById('hud').classList.add('hidden');
+  state="select"; buildSelect(); showScreen('selectScreen');
+};
+
+// ===================== Init =====================
+applyMap(0);
+resize();
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

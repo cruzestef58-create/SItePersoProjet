@@ -1,0 +1,1730 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<title>Tap Empire — Clicker de Civilisation</title>
+<style>
+  :root {
+    --bg:            #211d19;
+    --bg2:           #2f2a23;
+    --panel:         rgba(53, 48, 41, .72);
+    --panel-solid:   #353029;
+    --panel-light:   rgba(64, 58, 49, .85);
+    --beige:         #c9b79c;
+    --beige-dark:    #a8916f;
+    --accent:        #e0a85a;
+    --accent-hover:  #f1bd72;
+    --accent-glow:   rgba(224, 168, 90, .45);
+    --text:          #ece5da;
+    --text-dim:      #b3a895;
+    --good:          #9ec57f;
+    --shadow:        rgba(0,0,0,.4);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body { height: 100%; }
+
+  body {
+    font-family: 'Nunito', -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background:
+      radial-gradient(circle at 18% -5%, #3d362c 0%, transparent 45%),
+      radial-gradient(circle at 85% 110%, #34403a 0%, transparent 50%),
+      linear-gradient(160deg, var(--bg) 0%, var(--bg2) 100%);
+    background-attachment: fixed;
+    color: var(--text);
+    min-height: 100vh;
+    padding: 28px;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    transition: background .7s ease;
+  }
+
+  /* Fond : poussières flottantes */
+  .dust {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .dust span {
+    position: absolute;
+    bottom: -10px;
+    width: 4px; height: 4px;
+    background: var(--beige);
+    border-radius: 50%;
+    opacity: .12;
+    animation: rise linear infinite;
+  }
+  @keyframes rise {
+    to { transform: translateY(-110vh) translateX(40px); opacity: 0; }
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1120px;
+    margin: 0 auto;
+  }
+  .cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 26px;
+  }
+  .view { display: none; }
+  .view.active { display: block; animation: viewIn .35s ease; }
+  @keyframes viewIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .panel {
+    background: var(--panel);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,.07);
+    border-radius: 22px;
+    padding: 30px;
+    box-shadow: 0 18px 40px var(--shadow);
+  }
+
+  /* ---------- Colonne gauche ---------- */
+  .era-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--panel-light);
+    color: var(--beige);
+    font-size: 14px;
+    letter-spacing: .4px;
+    padding: 9px 18px;
+    border-radius: 999px;
+    border: 1px solid var(--beige-dark);
+    margin-bottom: 22px;
+  }
+  .era-badge b { color: var(--accent); }
+
+  .score-label {
+    font-size: 13px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 4px;
+  }
+  .score {
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1.05;
+    background: linear-gradient(90deg, var(--text), var(--beige));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transition: transform .08s ease;
+  }
+  .score.bump { transform: scale(1.06); }
+  .pps {
+    margin-top: 8px;
+    font-size: 15px;
+    color: var(--good);
+    font-weight: 600;
+  }
+
+  .click-zone {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 30px;
+  }
+  .click-btn {
+    position: relative;
+    background:
+      radial-gradient(circle at 50% 32%, #4a4338, #2c2820 75%);
+    border: 3px solid var(--beige-dark);
+    border-radius: 50%;
+    width: 250px;
+    height: 250px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform .1s cubic-bezier(.34,1.56,.64,1), box-shadow .25s, border-color .25s;
+    box-shadow: 0 0 0 0 var(--accent-glow), 0 14px 30px var(--shadow), inset 0 0 30px rgba(0,0,0,.45);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    overflow: visible;
+  }
+  /* anneau de lueur pulsé */
+  .click-btn::after {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    box-shadow: 0 0 35px var(--accent-glow);
+    opacity: .5;
+    animation: pulse 2.6s ease-in-out infinite;
+  }
+  @keyframes pulse { 50% { opacity: .9; } }
+
+  .click-btn img, .click-btn .fallback {
+    width: 155px;
+    height: 155px;
+    pointer-events: none;
+    filter: drop-shadow(0 6px 10px rgba(0,0,0,.55));
+    transition: transform .1s ease;
+  }
+  .click-btn .fallback { font-size: 110px; display:flex; align-items:center; justify-content:center; }
+  .click-btn:hover {
+    transform: scale(1.05);
+    border-color: var(--accent);
+    box-shadow: 0 0 28px var(--accent-glow), 0 18px 36px var(--shadow), inset 0 0 30px rgba(0,0,0,.45);
+  }
+  .click-btn.clicked { animation: squish .18s ease; }
+  @keyframes squish {
+    0%   { transform: scale(.88); }
+    60%  { transform: scale(1.04); }
+    100% { transform: scale(1); }
+  }
+
+  .click-hint { margin-top: 18px; font-size: 13px; color: var(--text-dim); }
+  .click-power-tag {
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* +X flottant */
+  .float {
+    position: fixed;
+    font-weight: 800;
+    color: var(--accent);
+    pointer-events: none;
+    animation: floatUp .85s ease-out forwards;
+    font-size: 24px;
+    text-shadow: 0 2px 6px rgba(0,0,0,.6);
+    z-index: 50;
+  }
+  @keyframes floatUp {
+    0%   { opacity: 1; transform: translate(-50%, 0) scale(.8); }
+    25%  { transform: translate(-50%, -14px) scale(1.15); }
+    100% { opacity: 0; transform: translate(-50%, -70px) scale(1); }
+  }
+
+  /* particules */
+  .particle {
+    position: fixed;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--accent);
+    pointer-events: none;
+    z-index: 49;
+    animation: burst .6s ease-out forwards;
+  }
+  @keyframes burst {
+    to { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(.3); }
+  }
+
+  /* ---------- Colonne droite ---------- */
+  .section + .section { margin-top: 26px; }
+  .section-title {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+  }
+
+  .building {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--panel-light);
+    border: 1px solid rgba(255,255,255,.05);
+    border-radius: 15px;
+    padding: 14px 16px;
+    transition: transform .12s ease, border-color .2s, box-shadow .2s;
+  }
+  .building + .building { margin-top: 10px; }
+  .building.affordable { border-color: var(--beige-dark); }
+  .building.affordable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px var(--shadow);
+  }
+  .b-icon {
+    flex: 0 0 46px;
+    width: 46px; height: 46px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+    background: rgba(0,0,0,.25);
+    border-radius: 12px;
+  }
+  .b-icon img {
+    width: 32px; height: 32px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,.5));
+  }
+  /* icône de monnaie à côté du libellé du score */
+  .score-label img {
+    width: 16px; height: 16px;
+    vertical-align: -3px;
+    margin-right: 4px;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,.5));
+  }
+  .b-info { flex: 1 1 auto; min-width: 0; }
+  .b-info h3 { font-size: 16px; margin-bottom: 2px; }
+  .b-info p { font-size: 12.5px; color: var(--text-dim); }
+  .b-info .owned { color: var(--beige); font-weight: 700; }
+
+  .buy-btn, .evolve-btn {
+    font-family: inherit;
+    font-weight: 700;
+    border: none;
+    border-radius: 11px;
+    cursor: pointer;
+    transition: transform .1s ease, background .2s, opacity .2s, filter .2s;
+    white-space: nowrap;
+  }
+  .buy-btn {
+    flex: 0 0 auto;
+    background: var(--accent);
+    color: #2b2723;
+    padding: 11px 16px;
+    font-size: 13px;
+    line-height: 1.25;
+    text-align: center;
+    min-width: 104px;
+  }
+  .buy-btn small { display:block; font-weight:600; opacity:.85; font-size:11px; }
+  .buy-btn:hover:not(:disabled) { background: var(--accent-hover); transform: scale(1.06); }
+  .buy-btn:active:not(:disabled) { transform: scale(.94); }
+
+  .buy-btn:disabled, .evolve-btn:disabled {
+    background: #46403799;
+    color: var(--text-dim);
+    cursor: not-allowed;
+  }
+
+  /* barre de progression vers l'ère suivante */
+  .evolve-card {
+    background: var(--panel-light);
+    border: 1px solid rgba(255,255,255,.05);
+    border-radius: 15px;
+    padding: 16px;
+  }
+  .progress {
+    height: 10px;
+    background: rgba(0,0,0,.35);
+    border-radius: 999px;
+    overflow: hidden;
+    margin: 12px 0 6px;
+  }
+  .progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--beige-dark), var(--accent));
+    border-radius: 999px;
+    transition: width .25s ease;
+  }
+  .progress-text { font-size: 12px; color: var(--text-dim); text-align: right; }
+
+  .evolve-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--accent), var(--beige-dark));
+    color: #2b2723;
+    padding: 16px;
+    font-size: 15px;
+    margin-top: 12px;
+  }
+  .evolve-btn:hover:not(:disabled) { transform: scale(1.02); filter: brightness(1.1); }
+  .evolve-btn:active:not(:disabled) { transform: scale(.98); }
+
+  /* topbar avec contrôles */
+  .topbar {
+    margin-bottom: 26px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .title { font-size: 20px; font-weight: 800; letter-spacing: .3px; }
+  .title span { color: var(--accent); }
+  .controls { display: flex; gap: 8px; }
+  .ctrl {
+    font-family: inherit;
+    background: var(--panel);
+    color: var(--text-dim);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: color .2s, border-color .2s, transform .1s;
+  }
+  .ctrl:hover { color: var(--text); border-color: var(--beige-dark); }
+  .ctrl:active { transform: scale(.95); }
+
+  /* Onglets de navigation + barre de ressources */
+  .tabs { display: flex; gap: 6px; }
+  .tab {
+    font-family: inherit; font-weight: 700; font-size: 14px;
+    background: var(--panel); color: var(--text-dim);
+    border: 1px solid rgba(255,255,255,.08); border-radius: 10px;
+    padding: 9px 16px; cursor: pointer;
+    transition: color .2s, background .2s, border-color .2s, transform .1s;
+  }
+  .tab:hover { color: var(--text); border-color: var(--beige-dark); }
+  .tab:active { transform: scale(.96); }
+  .tab.active { background: var(--accent); color: #2b2723; border-color: var(--accent); }
+  .resourcebar { font-weight: 700; color: var(--beige); font-size: 14px; }
+  .resourcebar span { color: var(--accent); }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--good);
+    color: #1d2416;
+    font-weight: 700;
+    padding: 16px 26px;
+    border-radius: 14px;
+    box-shadow: 0 14px 34px var(--shadow);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s, transform .3s;
+    max-width: 90%;
+    text-align: center;
+    z-index: 100;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* bonus d'ère */
+  .era-mult {
+    margin-top: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: .3px;
+  }
+
+  /* flash plein écran lors d'une évolution */
+  .era-flash {
+    position: fixed; inset: 0;
+    background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+    pointer-events: none; z-index: 90; opacity: 0;
+    animation: eraFlash 1.1s ease-out forwards;
+  }
+  @keyframes eraFlash { 0% { opacity: .95; } 100% { opacity: 0; } }
+
+  /* apparition d'un bâtiment fraîchement débloqué */
+  @keyframes unlockIn {
+    0%   { opacity: 0; transform: translateY(10px) scale(.96); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .building.just-unlocked { animation: unlockIn .5s ease both; }
+
+  /* lueur transmise au bouton central pendant l'évolution */
+  .click-btn.evolving { animation: evolvePop .8s ease; }
+  @keyframes evolvePop {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.18); }
+    100% { transform: scale(1); }
+  }
+
+  .evolve-apex {
+    text-align: center;
+    font-weight: 700;
+    color: var(--accent);
+    padding: 6px 0;
+  }
+
+  /* Héros & Force */
+  .force-line {
+    margin-top: 4px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #e08a6a;
+    letter-spacing: .3px;
+  }
+  .building.recruited {
+    border-color: var(--good);
+    background: rgba(150,190,115,.14);
+  }
+  .b-icon img.hero-portrait { width: 40px; height: 40px; border-radius: 50%; }
+  .hero-force { color: var(--accent); font-weight: 700; }
+  .buy-btn.done {
+    background: var(--good);
+    color: #1d2416;
+    cursor: default;
+    min-width: 104px;
+  }
+  .buy-btn.done:hover { transform: none; filter: none; }
+
+  /* Pillage / Raids */
+  .raid-card {
+    background: var(--panel-light);
+    border: 1px solid rgba(255,255,255,.05);
+    border-radius: 15px;
+    padding: 16px;
+  }
+  .raid-force { font-size: 13px; color: var(--text-dim); margin-bottom: 10px; }
+  .raid-force b { color: #e08a6a; }
+  .raid-hint { font-size: 12px; color: #e8b; margin-bottom: 10px; }
+  .raid-name { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+  .raid-stats { display: flex; gap: 18px; flex-wrap: wrap; font-size: 13px; color: var(--text-dim); margin-bottom: 8px; }
+  .raid-stats b { color: var(--beige); }
+  .raid-chance { font-size: 13px; color: var(--text-dim); }
+  .raid-chance b { color: var(--accent); }
+  .raid-bar { height: 8px; background: rgba(0,0,0,.35); border-radius: 999px; overflow: hidden; margin: 6px 0 12px; }
+  .raid-bar div { height: 100%; background: linear-gradient(90deg,#cf4a3f,#e0a85a,#9ec57f); border-radius: 999px; transition: width .25s; }
+  .raid-actions { display: flex; gap: 8px; }
+  .raid-btn {
+    font-family: inherit; font-weight: 700; border: none; border-radius: 11px;
+    cursor: pointer; padding: 12px 16px; font-size: 14px;
+    transition: transform .1s, filter .2s, background .2s;
+  }
+  .raid-btn.search { width: 100%; background: linear-gradient(135deg,#cf4a3f,#a8916f); color: #2b2723; }
+  .raid-btn.attack { flex: 1; background: #cf4a3f; color: #fff; }
+  #raid-skip { background: var(--panel); color: var(--text-dim); border: 1px solid rgba(255,255,255,.1); }
+  .raid-btn:hover:not(:disabled) { filter: brightness(1.1); transform: scale(1.03); }
+  .raid-btn:active:not(:disabled) { transform: scale(.96); }
+  .raid-btn:disabled { background: #46403799; color: var(--text-dim); cursor: not-allowed; }
+  .raid-result { margin-top: 12px; font-size: 13px; font-weight: 600; padding: 10px; border-radius: 10px; text-align: center; }
+  .raid-result.win { background: rgba(150,190,115,.18); color: var(--good); }
+  .raid-result.lose { background: rgba(207,74,63,.18); color: #e8918a; }
+  .raid-tally { margin-top: 10px; font-size: 12px; color: var(--text-dim); text-align: center; }
+  .raid-card.shake { animation: shake .4s; }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-7px); } 40% { transform: translateX(7px); }
+    60% { transform: translateX(-4px); } 80% { transform: translateX(4px); }
+  }
+
+  /* Scène de survol (nuages → village) */
+  .raid-scene {
+    position: relative;
+    height: 150px;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    background: linear-gradient(180deg, #6b8fae 0%, #a9c6da 55%, #d3c79a 100%);
+  }
+  .village-art {
+    position: absolute; left: 50%; bottom: 4px; width: 200px;
+    transform: translateX(-50%) scale(.6); opacity: 0;
+    transition: transform .6s cubic-bezier(.34,1.56,.64,1), opacity .5s;
+  }
+  .village-art svg { width: 100%; height: auto; display: block; }
+  .raid-scene.revealed .village-art { opacity: 1; transform: translateX(-50%) scale(1); }
+
+  .puff {
+    position: absolute; background: #fdfdff; border-radius: 50%; filter: blur(1px);
+    box-shadow: 26px 10px 0 -3px #fdfdff, -26px 10px 0 -3px #fdfdff, 0 14px 0 -1px #fdfdff;
+    transition: opacity .6s ease, transform .8s ease;
+  }
+  .p1 { width: 60px; height: 60px; left: 4%;  top: 22%; }
+  .p2 { width: 84px; height: 84px; left: 30%; top: 6%; }
+  .p3 { width: 70px; height: 70px; left: 58%; top: 26%; }
+  .p4 { width: 54px; height: 54px; left: 80%; top: 14%; }
+  .p5 { width: 92px; height: 92px; left: 44%; top: 42%; }
+  .raid-scene.revealed .puff { opacity: 0; transform: translateY(-28px); }
+  .raid-scene.scanning .puff { animation: drift 1.3s linear; opacity: 1; }
+  @keyframes drift { 0% { transform: translateX(70px); } 100% { transform: translateX(-70px); } }
+
+  .scene-label {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: #2b2723; font-weight: 700; font-size: 15px; text-shadow: 0 1px 3px rgba(255,255,255,.5);
+    pointer-events: none;
+  }
+
+  /* Mon Village */
+  .village-scene {
+    position: relative; height: 190px; border-radius: 12px; overflow: hidden; margin-bottom: 12px;
+    background: radial-gradient(circle at 50% 30%, #cfe3ef 0%, #a9c6da 55%, #8fb3cf 100%);
+  }
+  .village-scene svg { width: 100%; height: 100%; display: block; }
+  .village-stats { font-size: 13px; color: var(--text-dim); display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+  .village-stats b { color: var(--beige); }
+  #vh-def { color: #9ab7d6; }
+  .garrison { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; min-height: 36px; align-items: center; }
+  .garrison .troop { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--beige-dark); background: rgba(0,0,0,.2); }
+  .garrison-empty { font-size: 12px; color: var(--text-dim); }
+  .vh-btn { width: 100%; }
+
+  /* Village vivant & interactif */
+  .v-build { cursor: pointer; }
+  .v-build:hover { filter: brightness(1.08); }
+  .v-th { animation: vBob 3.2s ease-in-out infinite; }
+  @keyframes vBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+  .v-build.tapped { animation: vTap .34s ease; }
+  @keyframes vTap { 0% { transform: translateY(0); } 40% { transform: translateY(-9px); } 100% { transform: translateY(0); } }
+  .v-cloud { animation: vDrift linear infinite; }
+  @keyframes vDrift { from { transform: translateX(-55px); } to { transform: translateX(315px); } }
+  .v-smoke { animation: vSmoke 2.6s ease-out infinite; }
+  @keyframes vSmoke { 0% { opacity: .55; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-30px); } }
+  .v-villager { animation: vWalk linear infinite; }
+  @keyframes vWalk { 0% { transform: translateX(-16px); } 50% { transform: translateX(16px); } 100% { transform: translateX(-16px); } }
+
+  /* ====================== Habillage moderne ====================== */
+  :root { --font-head: 'Fredoka', 'Segoe UI', sans-serif; }
+  .title, .score, .section-title, .b-info h3, .era-badge, .pps, .era-mult,
+  .buy-btn, .evolve-btn, .raid-btn, .tab, .resourcebar, .raid-name,
+  .force-line, .village-stats, .b-info p { font-family: var(--font-head); }
+
+  body {
+    background:
+      radial-gradient(circle at 18% -5%, #463d30 0%, transparent 45%),
+      radial-gradient(circle at 85% 110%, #34403a 0%, transparent 50%),
+      linear-gradient(160deg, var(--bg) 0%, var(--bg2) 100%);
+    background-attachment: fixed;
+  }
+
+  .panel {
+    border-radius: 24px;
+    border-color: rgba(255,255,255,.10);
+    box-shadow: 0 22px 46px rgba(0,0,0,.46), inset 0 1px 0 rgba(255,255,255,.07);
+  }
+
+  /* Boutons 3D (s'enfoncent au clic) */
+  .buy-btn, .evolve-btn, .raid-btn, .tab, .ctrl {
+    box-shadow: 0 5px 0 rgba(0,0,0,.30), 0 9px 16px rgba(0,0,0,.30);
+  }
+  .buy-btn:active:not(:disabled), .evolve-btn:active:not(:disabled),
+  .raid-btn:active:not(:disabled), .tab:active, .ctrl:active {
+    transform: translateY(4px) !important;
+    box-shadow: 0 1px 0 rgba(0,0,0,.30), 0 3px 7px rgba(0,0,0,.3);
+  }
+  .buy-btn:disabled, .evolve-btn:disabled {
+    box-shadow: 0 4px 0 rgba(0,0,0,.20);
+  }
+  .tab.active { box-shadow: 0 5px 0 rgba(0,0,0,.32), 0 9px 18px var(--accent-glow); }
+  .vh-btn { box-shadow: 0 5px 0 rgba(0,0,0,.30), 0 9px 16px rgba(0,0,0,.30); }
+
+  /* Gros bouton minerai : relief + brillance vitrée */
+  .click-btn {
+    border-width: 4px;
+    box-shadow: 0 0 0 0 var(--accent-glow), 0 18px 36px rgba(0,0,0,.5),
+                inset 0 6px 16px rgba(255,255,255,.10), inset 0 -12px 24px rgba(0,0,0,.55);
+  }
+  .click-btn::before {
+    content: ""; position: absolute; left: 16%; top: 9%; width: 46%; height: 30%;
+    border-radius: 50%; pointer-events: none; z-index: 1;
+    background: radial-gradient(ellipse at center, rgba(255,255,255,.40), transparent 72%);
+  }
+
+  /* Onglet actif : effet "pilule" lumineuse */
+  .tab { letter-spacing: .2px; }
+  .score { letter-spacing: .5px; }
+
+  /* ============ Gros bouton minerai : 3D brillant ============ */
+  .click-btn {
+    width: 250px; height: 250px;
+    border: none;
+    background:
+      radial-gradient(ellipse 62% 42% at 50% 22%, rgba(255,255,255,.20), transparent 62%),
+      radial-gradient(circle at 50% 32%, #6d6353 0%, #423b30 52%, #2a241d 100%);
+    box-shadow:
+      inset 0 0 0 6px rgba(255,255,255,.05),
+      inset 0 7px 16px rgba(255,255,255,.16),
+      inset 0 -20px 38px rgba(0,0,0,.62),
+      0 0 0 5px var(--beige-dark),
+      0 16px 0 #221d17,
+      0 24px 32px rgba(0,0,0,.55),
+      0 0 46px var(--accent-glow);
+    transition: transform .14s cubic-bezier(.34,1.56,.64,1), box-shadow .25s, filter .2s;
+  }
+  .click-btn:hover {
+    transform: scale(1.04);
+    filter: brightness(1.07);
+    box-shadow:
+      inset 0 0 0 6px rgba(255,255,255,.07),
+      inset 0 7px 16px rgba(255,255,255,.18),
+      inset 0 -20px 38px rgba(0,0,0,.6),
+      0 0 0 5px var(--accent),
+      0 16px 0 #221d17,
+      0 26px 38px rgba(0,0,0,.55),
+      0 0 60px var(--accent-glow);
+  }
+  .click-btn:active {
+    box-shadow:
+      inset 0 0 0 6px rgba(255,255,255,.05),
+      inset 0 5px 12px rgba(255,255,255,.12),
+      inset 0 -10px 22px rgba(0,0,0,.6),
+      0 0 0 5px var(--beige-dark),
+      0 5px 0 #221d17,
+      0 8px 14px rgba(0,0,0,.5),
+      0 0 34px var(--accent-glow);
+  }
+  .click-btn img, .click-btn .fallback {
+    width: 165px; height: 165px;
+    position: relative; z-index: 2;
+    filter: drop-shadow(0 10px 12px rgba(0,0,0,.55));
+    animation: gemFloat 3.2s ease-in-out infinite;
+  }
+  @keyframes gemFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+  .click-btn.clicked { animation: squish .28s ease; }
+  @keyframes squish {
+    0%   { transform: translateY(11px) scale(.97); }
+    55%  { transform: translateY(-4px) scale(1.03); }
+    100% { transform: translateY(0) scale(1); }
+  }
+  .click-btn::before {
+    content: ""; position: absolute; inset: 0; width: 100%; height: 100%;
+    border-radius: 50%; z-index: 3; pointer-events: none;
+    background: linear-gradient(115deg, transparent 41%, rgba(255,255,255,.45) 49%, rgba(255,255,255,.45) 51%, transparent 59%);
+    background-size: 250% 250%; background-position: 160% 160%;
+    animation: glint 5s ease-in-out infinite;
+  }
+  @keyframes glint { 0%, 62% { background-position: 160% 160%; } 100% { background-position: -60% -60%; } }
+
+  /* Cristal cassable (fissures, barre, éclatement) */
+  .cracks {
+    position: absolute; top: 50%; left: 50%; margin: -75px 0 0 -75px;
+    width: 150px; height: 150px; pointer-events: none; z-index: 2;
+    animation: gemFloat 3.2s ease-in-out infinite;
+  }
+  .cracks path { fill: none; stroke: #1f1430; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+  .cracks g { opacity: 0; transition: opacity .15s; }
+  .cracks.s1 .c1,
+  .cracks.s2 .c1, .cracks.s2 .c2,
+  .cracks.s3 .c1, .cracks.s3 .c2, .cracks.s3 .c3 { opacity: .92; }
+
+  .crystal-bar {
+    width: 210px; max-width: 78%; height: 10px; margin-top: 14px;
+    background: rgba(0,0,0,.4); border-radius: 999px; overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,.55);
+  }
+  .crystal-fill {
+    height: 100%; width: 100%; border-radius: 999px;
+    background: linear-gradient(90deg, #cf4a3f, #e0a85a 55%, #9ec57f);
+    transition: width .12s ease;
+  }
+  .crystal-info { margin-top: 6px; font-size: 12px; color: var(--text-dim); }
+  .click-btn.shatter { animation: shatter .42s ease; }
+  @keyframes shatter {
+    0% { transform: scale(1); } 22% { transform: scale(1.14); }
+    55% { transform: scale(.97); } 100% { transform: scale(1); }
+  }
+
+  @media (max-width: 780px) {
+    .cols { grid-template-columns: 1fr; }
+    .topbar { gap: 8px; }
+    .score { font-size: 40px; }
+    .click-btn { width: 210px; height: 210px; }
+    .click-btn img, .click-btn .fallback { width: 125px; height: 125px; font-size: 90px; }
+  }
+</style>
+</head>
+<body>
+  <div class="dust" id="dust"></div>
+
+  <div class="container">
+
+    <!-- Barre supérieure -->
+    <div class="topbar">
+      <div class="title">⛰️ Tap <span>Empire</span></div>
+      <div class="tabs">
+        <button class="tab active" data-view="prod">⛏️ Production</button>
+        <button class="tab" data-view="village">🏡 Village</button>
+      </div>
+      <div class="resourcebar">💰 <span id="top-score">0</span> &middot; <span id="top-pps">0</span>/s</div>
+      <div class="controls">
+        <button class="ctrl" id="sound-toggle">🔊 Son</button>
+        <button class="ctrl" id="reset-btn">↺ Réinitialiser</button>
+      </div>
+    </div>
+
+    <!-- ===================== VUE PRODUCTION ===================== -->
+    <div class="view active" id="view-prod">
+    <div class="cols">
+
+    <!-- ===== Colonne gauche : Action ===== -->
+    <div class="panel">
+      <span class="era-badge">Ère actuelle : <b id="era-name">Âge de Pierre</b></span>
+
+      <div class="score-label"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%20%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2225%22%20fill%3D%22%23d9a566%22%20stroke%3D%22%233a2f25%22%20stroke-width%3D%223%22%2F%3E%20%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2219%22%20fill%3D%22none%22%20stroke%3D%22%23b5803f%22%20stroke-width%3D%222.5%22%20opacity%3D%220.7%22%2F%3E%20%3Cpath%20d%3D%22M32%2032%20q0%20-8%208%20-8%20q11%200%2011%2011%20q0%2015%20-19%2015%20q-22%200%20-22%20-22%22%20fill%3D%22none%22%20stroke%3D%22%236b4a2a%22%20stroke-width%3D%223.4%22%20stroke-linecap%3D%22round%22%2F%3E%20%3Cellipse%20cx%3D%2224%22%20cy%3D%2222%22%20rx%3D%226%22%20ry%3D%223.5%22%20fill%3D%22%23ffffff%22%20opacity%3D%220.3%22%2F%3E%20%3C%2Fsvg%3E" alt="" onerror="this.style.display='none'">Points de Production</div>
+      <div class="score" id="score">0</div>
+      <div class="pps" id="pps">0 points par seconde (PPS)</div>
+      <div class="era-mult" id="era-mult"></div>
+      <div class="force-line" id="force-line"></div>
+
+      <div class="click-zone">
+        <div class="click-btn" id="clicker">
+          <img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20120%20120%22%3E%20%3Cdefs%3E%20%3ClinearGradient%20id%3D%22gL%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%20%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23bd93ff%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%236b3fc9%22%2F%3E%20%3C%2FlinearGradient%3E%20%3ClinearGradient%20id%3D%22gR%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%20%3Cstop%20offset%3D%220%22%20stop-color%3D%22%239d6cff%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%234a2a8f%22%2F%3E%20%3C%2FlinearGradient%3E%20%3ClinearGradient%20id%3D%22gT%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%20%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23efe1ff%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23bd93ff%22%2F%3E%20%3C%2FlinearGradient%3E%20%3CradialGradient%20id%3D%22glow%22%20cx%3D%220.5%22%20cy%3D%220.45%22%20r%3D%220.6%22%3E%20%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23cba6ff%22%20stop-opacity%3D%220.6%22%2F%3E%20%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23cba6ff%22%20stop-opacity%3D%220%22%2F%3E%20%3C%2FradialGradient%3E%20%3C%2Fdefs%3E%20%3Cellipse%20cx%3D%2260%22%20cy%3D%2262%22%20rx%3D%2248%22%20ry%3D%2252%22%20fill%3D%22url(%23glow)%22%2F%3E%20%3Cg%20stroke%3D%22%232a1a4d%22%20stroke-width%3D%222.5%22%20stroke-linejoin%3D%22round%22%3E%20%3Cpolygon%20points%3D%2260%2C12%2040%2C34%2045%2C96%2060%2C108%22%20fill%3D%22url(%23gL)%22%2F%3E%20%3Cpolygon%20points%3D%2260%2C12%2080%2C34%2075%2C96%2060%2C108%22%20fill%3D%22url(%23gR)%22%2F%3E%20%3Cpolygon%20points%3D%2260%2C12%2040%2C34%2060%2C40%22%20fill%3D%22url(%23gT)%22%2F%3E%20%3Cpolygon%20points%3D%2260%2C12%2080%2C34%2060%2C40%22%20fill%3D%22%23a87cf0%22%2F%3E%20%3Cpolyline%20points%3D%2240%2C34%2060%2C40%2080%2C34%22%20fill%3D%22none%22%2F%3E%20%3Cpolyline%20points%3D%2260%2C40%2060%2C108%22%20fill%3D%22none%22%2F%3E%20%3C%2Fg%3E%20%3Cpolygon%20points%3D%2252%2C40%2056.5%2C40%2050%2C90%2045.5%2C90%22%20fill%3D%22%23ffffff%22%20opacity%3D%220.38%22%2F%3E%20%3Ccircle%20cx%3D%2248%22%20cy%3D%2230%22%20r%3D%223%22%20fill%3D%22%23ffffff%22%20opacity%3D%220.85%22%2F%3E%20%3C%2Fsvg%3E" alt="Minerai"
+               onerror="this.outerHTML='<div class=&quot;fallback&quot;>💎</div>';">
+          <svg class="cracks" id="cracks" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+            <g class="c1"><path d="M60 60 L65 42 L60 26"/><path d="M60 60 L76 64 L90 58"/></g>
+            <g class="c2"><path d="M60 60 L46 52 L32 56"/><path d="M60 60 L56 78 L63 94"/></g>
+            <g class="c3"><path d="M60 60 L73 76 L71 92"/><path d="M60 60 L41 67 L26 73"/><path d="M60 60 L49 41 L37 33"/></g>
+          </svg>
+        </div>
+        <div class="click-hint">Tape le cristal pour le fissurer… casse-le pour le butin !</div>
+        <div class="click-power-tag" id="click-power-tag">+1 par clic</div>
+        <div class="crystal-bar"><div class="crystal-fill" id="crystal-fill"></div></div>
+        <div class="crystal-info" id="crystal-info">Cristaux brisés : 0</div>
+      </div>
+    </div>
+
+    <!-- ===== Colonne droite : Production ===== -->
+    <div class="panel">
+
+      <div class="section">
+        <div class="section-title">⛏️ Puissance de clic</div>
+        <div class="building" id="b-pick">
+          <div class="b-icon"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%20%3Cpath%20d%3D%22M32%207%20C20%2013%2013%2030%2016%2045%20C18%2055%2026%2058%2032%2058%20C38%2058%2046%2055%2048%2045%20C51%2030%2044%2013%2032%207%20Z%22%20fill%3D%22%239aa4a8%22%20stroke%3D%22%233a2f25%22%20stroke-width%3D%223%22%20stroke-linejoin%3D%22round%22%2F%3E%20%3Cpath%20d%3D%22M32%207%20C24%2013%2019%2028%2021%2042%20L33%2028%20Z%22%20fill%3D%22%23bcc5c8%22%2F%3E%20%3Cpath%20d%3D%22M33%2028%20L21%2042%20C23%2052%2027%2056%2032%2057%20L34%2038%20Z%22%20fill%3D%22%237e888c%22%2F%3E%20%3Cpath%20d%3D%22M33%2028%20L48%2045%20C46%2055%2039%2058%2033%2058%20L34%2038%20Z%22%20fill%3D%22%23aab3b6%22%2F%3E%20%3Cg%20stroke%3D%22%233a2f25%22%20stroke-width%3D%221.6%22%20stroke-linecap%3D%22round%22%20opacity%3D%220.55%22%20fill%3D%22none%22%3E%20%3Cpath%20d%3D%22M26%2022%20l4%204%22%2F%3E%3Cpath%20d%3D%22M38%2024%20l-3%204%22%2F%3E%3Cpath%20d%3D%22M28%2044%20l5%203%22%2F%3E%20%3C%2Fg%3E%20%3C%2Fsvg%3E" alt="" onerror="this.outerHTML='⛏️'"></div>
+          <div class="b-info">
+            <h3>Outil de Pierre Taillée</h3>
+            <p>+1 par clic &middot; Niveau : <span class="owned" id="pick-count">0</span></p>
+          </div>
+          <button class="buy-btn" id="buy-pick">
+            Améliorer<small id="pick-cost">25 pts</small>
+          </button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">🏠 Bâtiments (production passive)</div>
+        <div id="buildings"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">⚒️ Prochaine Ère</div>
+        <div class="evolve-card" id="evolve-card">
+          <p style="font-size:13.5px;color:var(--text-dim);" id="evolve-desc">
+            Accumulez <b style="color:var(--accent)" id="evolve-cost">500</b> points pour accéder à l'ère
+            <b style="color:var(--accent)" id="evolve-next-name">Âge de Bronze</b>.
+          </p>
+          <div class="progress"><div class="progress-bar" id="evolve-progress"></div></div>
+          <div class="progress-text" id="evolve-progress-text">0 / 500</div>
+          <button class="evolve-btn" id="evolve-btn" disabled>Évoluer vers l'Âge de Bronze</button>
+          <div class="era-mult" id="evolve-bonus" style="text-align:center;color:var(--good);margin-top:8px;"></div>
+        </div>
+      </div>
+
+    </div>
+    </div>
+    </div>
+
+    <!-- ===================== VUE VILLAGE ===================== -->
+    <div class="view" id="view-village">
+    <div class="cols">
+
+      <!-- Colonne gauche : la base -->
+      <div class="panel">
+        <div class="section">
+          <div class="section-title">🏡 Mon Village</div>
+          <div class="village-scene" id="village-scene"></div>
+          <div class="village-stats">
+            <div>🏛️ Niveau du village : <b id="vh-level">1</b></div>
+            <div>🛡️ Défense : <b id="vh-def">0</b></div>
+            <div>⚔️ Troupes : <b id="vh-troops">0</b> héros &middot; 💪 Force <b id="vh-force">0</b></div>
+          </div>
+          <div class="garrison" id="garrison"></div>
+          <button class="buy-btn vh-btn" id="vh-upgrade">Améliorer le village<small id="vh-cost">—</small></button>
+        </div>
+      </div>
+
+      <!-- Colonne droite : troupes & guerre -->
+      <div class="panel">
+        <div class="section">
+          <div class="section-title">🦸 Héros (tes troupes)</div>
+          <div id="heroes"></div>
+        </div>
+        <div class="section">
+          <div class="section-title">⚔️ Pillage de villages</div>
+          <div class="raid-card" id="raid-card"></div>
+        </div>
+      </div>
+
+    </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+  // ===================== Données du jeu =====================
+  // Chaque ère : nom, minerai central, palette d'ambiance et bonus de production global.
+  const ERAS = [
+    { name: 'Âge de Pierre',    central: 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20120%20120%22%3E%20%3Cdefs%3E%20%3ClinearGradient%20id%3D%22gL%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%20%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23bd93ff%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%236b3fc9%22%2F%3E%20%3C%2FlinearGradient%3E%20%3ClinearGradient%20id%3D%22gR%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%20%3Cstop%20offset%3D%220%22%20stop-color%3D%22%239d6cff%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%234a2a8f%22%2F%3E%20%3C%2FlinearGradient%3E%20%3ClinearGradient%20id%3D%22gT%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%20%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23efe1ff%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23bd93ff%22%2F%3E%20%3C%2FlinearGradient%3E%20%3CradialGradient%20id%3D%22glow%22%20cx%3D%220.5%22%20cy%3D%220.45%22%20r%3D%220.6%22%3E%20%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23cba6ff%22%20stop-opacity%3D%220.6%22%2F%3E%20%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23cba6ff%22%20stop-opacity%3D%220%22%2F%3E%20%3C%2FradialGradient%3E%20%3C%2Fdefs%3E%20%3Cellipse%20cx%3D%2260%22%20cy%3D%2262%22%20rx%3D%2248%22%20ry%3D%2252%22%20fill%3D%22url(%23glow)%22%2F%3E%20%3Cg%20stroke%3D%22%232a1a4d%22%20stroke-width%3D%222.5%22%20stroke-linejoin%3D%22round%22%3E%20%3Cpolygon%20points%3D%2260%2C12%2040%2C34%2045%2C96%2060%2C108%22%20fill%3D%22url(%23gL)%22%2F%3E%20%3Cpolygon%20points%3D%2260%2C12%2080%2C34%2075%2C96%2060%2C108%22%20fill%3D%22url(%23gR)%22%2F%3E%20%3Cpolygon%20points%3D%2260%2C12%2040%2C34%2060%2C40%22%20fill%3D%22url(%23gT)%22%2F%3E%20%3Cpolygon%20points%3D%2260%2C12%2080%2C34%2060%2C40%22%20fill%3D%22%23a87cf0%22%2F%3E%20%3Cpolyline%20points%3D%2240%2C34%2060%2C40%2080%2C34%22%20fill%3D%22none%22%2F%3E%20%3Cpolyline%20points%3D%2260%2C40%2060%2C108%22%20fill%3D%22none%22%2F%3E%20%3C%2Fg%3E%20%3Cpolygon%20points%3D%2252%2C40%2056.5%2C40%2050%2C90%2045.5%2C90%22%20fill%3D%22%23ffffff%22%20opacity%3D%220.38%22%2F%3E%20%3Ccircle%20cx%3D%2248%22%20cy%3D%2230%22%20r%3D%223%22%20fill%3D%22%23ffffff%22%20opacity%3D%220.85%22%2F%3E%20%3C%2Fsvg%3E',    fb: '💎', mult: 1,
+      accent:'#e0a85a', accentHover:'#f1bd72', glow:'rgba(224,168,90,.45)', beige:'#c9b79c', beigeDark:'#a8916f', bg:'#211d19', bg2:'#2f2a23' },
+    { name: 'Âge de Bronze',    central: 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20120%20120%22%3E%20%3Cdefs%3E%20%3ClinearGradient%20id%3D%22bz%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%20%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23e8b072%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%238c5a28%22%2F%3E%20%3C%2FlinearGradient%3E%20%3CradialGradient%20id%3D%22bzglow%22%20cx%3D%220.5%22%20cy%3D%220.55%22%20r%3D%220.6%22%3E%20%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23e8b072%22%20stop-opacity%3D%220.5%22%2F%3E%20%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23e8b072%22%20stop-opacity%3D%220%22%2F%3E%20%3C%2FradialGradient%3E%20%3C%2Fdefs%3E%20%3Cellipse%20cx%3D%2260%22%20cy%3D%2268%22%20rx%3D%2250%22%20ry%3D%2238%22%20fill%3D%22url(%23bzglow)%22%2F%3E%20%3Cg%20stroke%3D%22%234a2f12%22%20stroke-width%3D%222.5%22%20stroke-linejoin%3D%22round%22%3E%20%3Cpolygon%20points%3D%2248%2C46%2072%2C46%2078%2C54%2042%2C54%22%20fill%3D%22%23f0c089%22%2F%3E%20%3Cpolygon%20points%3D%2242%2C54%2078%2C54%2086%2C86%2034%2C86%22%20fill%3D%22url(%23bz)%22%2F%3E%20%3C%2Fg%3E%20%3Cpolygon%20points%3D%2248%2C56%2054%2C56%2046%2C84%2040%2C84%22%20fill%3D%22%23ffffff%22%20opacity%3D%220.22%22%2F%3E%20%3Cpolygon%20points%3D%2254%2C48%2066%2C48%2070%2C53%2050%2C53%22%20fill%3D%22%23ffffff%22%20opacity%3D%220.25%22%2F%3E%20%3C%2Fsvg%3E',  fb: '🟫', mult: 5,
+      accent:'#cd7f32', accentHover:'#e0974a', glow:'rgba(205,127,50,.5)',  beige:'#d8b78f', beigeDark:'#a87c4a', bg:'#241a12', bg2:'#34261a' },
+    { name: 'Âge de Fer',       central: 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20120%20120%22%3E%20%3Cdefs%3E%20%3ClinearGradient%20id%3D%22iron%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%20%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23c2ccd4%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%235e6b75%22%2F%3E%20%3C%2FlinearGradient%3E%20%3CradialGradient%20id%3D%22irglow%22%20cx%3D%220.5%22%20cy%3D%220.5%22%20r%3D%220.6%22%3E%20%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23aeb9c2%22%20stop-opacity%3D%220.45%22%2F%3E%20%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23aeb9c2%22%20stop-opacity%3D%220%22%2F%3E%20%3C%2FradialGradient%3E%20%3C%2Fdefs%3E%20%3Cellipse%20cx%3D%2260%22%20cy%3D%2264%22%20rx%3D%2250%22%20ry%3D%2242%22%20fill%3D%22url(%23irglow)%22%2F%3E%20%3Cg%20stroke%3D%22%232b3238%22%20stroke-width%3D%222.5%22%20stroke-linejoin%3D%22round%22%20fill%3D%22url(%23iron)%22%3E%20%3Cpolygon%20points%3D%2288%2C50%20112%2C55%2088%2C64%22%2F%3E%20%3Crect%20x%3D%2226%22%20y%3D%2246%22%20width%3D%2264%22%20height%3D%2220%22%20rx%3D%225%22%2F%3E%20%3Cpolygon%20points%3D%2252%2C66%2076%2C66%2070%2C80%2088%2C80%2088%2C94%2040%2C94%2040%2C80%2058%2C80%22%2F%3E%20%3C%2Fg%3E%20%3Crect%20x%3D%2231%22%20y%3D%2249%22%20width%3D%2242%22%20height%3D%225%22%20rx%3D%222%22%20fill%3D%22%23ffffff%22%20opacity%3D%220.28%22%2F%3E%20%3C%2Fsvg%3E',  fb: '⚒️', mult: 25,
+      accent:'#8fa3b0', accentHover:'#aebfca', glow:'rgba(143,163,176,.45)',beige:'#b9c4cc', beigeDark:'#6c7884', bg:'#181b1e', bg2:'#23282d' },
+    { name: 'Antiquité',        central: 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20120%20120%22%3E%20%3Cg%20stroke%3D%22%234a3f2e%22%20stroke-width%3D%222.5%22%20stroke-linejoin%3D%22round%22%3E%20%3Crect%20x%3D%2230%22%20y%3D%2222%22%20width%3D%2260%22%20height%3D%2210%22%20rx%3D%222%22%20fill%3D%22%23ece4d3%22%2F%3E%20%3Crect%20x%3D%2237%22%20y%3D%2232%22%20width%3D%2246%22%20height%3D%228%22%20fill%3D%22%23ddd2bb%22%2F%3E%20%3Crect%20x%3D%2242%22%20y%3D%2240%22%20width%3D%2236%22%20height%3D%2260%22%20fill%3D%22%23ece4d3%22%2F%3E%20%3Crect%20x%3D%2237%22%20y%3D%22100%22%20width%3D%2246%22%20height%3D%228%22%20fill%3D%22%23ddd2bb%22%2F%3E%20%3Crect%20x%3D%2230%22%20y%3D%22108%22%20width%3D%2260%22%20height%3D%2210%22%20rx%3D%222%22%20fill%3D%22%23ece4d3%22%2F%3E%20%3C%2Fg%3E%20%3Cg%20stroke%3D%22%23c9bfa8%22%20stroke-width%3D%222%22%20opacity%3D%220.8%22%20stroke-linecap%3D%22round%22%3E%20%3Cline%20x1%3D%2250%22%20y1%3D%2244%22%20x2%3D%2250%22%20y2%3D%2296%22%2F%3E%20%3Cline%20x1%3D%2260%22%20y1%3D%2244%22%20x2%3D%2260%22%20y2%3D%2296%22%2F%3E%20%3Cline%20x1%3D%2270%22%20y1%3D%2244%22%20x2%3D%2270%22%20y2%3D%2296%22%2F%3E%20%3C%2Fg%3E%20%3Crect%20x%3D%2272%22%20y%3D%2240%22%20width%3D%226%22%20height%3D%2260%22%20fill%3D%22%23c9bfa8%22%20opacity%3D%220.45%22%2F%3E%20%3C%2Fsvg%3E', fb: '🏛️', mult: 125,
+      accent:'#d9c074', accentHover:'#ecd488', glow:'rgba(217,192,116,.45)',beige:'#e6dcb8', beigeDark:'#b0a05c', bg:'#1d1b12', bg2:'#2b281a' },
+    { name: 'Ère Industrielle', central: 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20120%20120%22%3E%20%3Cdefs%3E%20%3ClinearGradient%20id%3D%22steel%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%20%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23c2ccd4%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%236c7884%22%2F%3E%20%3C%2FlinearGradient%3E%20%3CradialGradient%20id%3D%22stglow%22%20cx%3D%220.5%22%20cy%3D%220.5%22%20r%3D%220.6%22%3E%20%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23b06a3a%22%20stop-opacity%3D%220.45%22%2F%3E%20%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23b06a3a%22%20stop-opacity%3D%220%22%2F%3E%20%3C%2FradialGradient%3E%20%3C%2Fdefs%3E%20%3Cellipse%20cx%3D%2260%22%20cy%3D%2260%22%20rx%3D%2252%22%20ry%3D%2252%22%20fill%3D%22url(%23stglow)%22%2F%3E%20%3Cpolygon%20points%3D%22106%2C60%2094.2%2C74.2%2092.5%2C92.5%2074.2%2C94.2%2060%2C106%2045.8%2C94.2%2027.5%2C92.5%2025.8%2C74.2%2014%2C60%2025.8%2C45.8%2027.5%2C27.5%2045.8%2C25.8%2060%2C14%2074.2%2C25.8%2092.5%2C27.5%2094.2%2C45.8%22%20fill%3D%22url(%23steel)%22%20stroke%3D%22%233a444c%22%20stroke-width%3D%222.5%22%20stroke-linejoin%3D%22round%22%2F%3E%20%3Ccircle%20cx%3D%2260%22%20cy%3D%2260%22%20r%3D%2222%22%20fill%3D%22%23525e67%22%20stroke%3D%22%233a444c%22%20stroke-width%3D%222.5%22%2F%3E%20%3Ccircle%20cx%3D%2260%22%20cy%3D%2260%22%20r%3D%2212%22%20fill%3D%22%232c3236%22%20stroke%3D%22%233a444c%22%20stroke-width%3D%222%22%2F%3E%20%3Cpath%20d%3D%22M42%2046%20A22%2022%200%200%201%2076%2042%22%20fill%3D%22none%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%223.5%22%20stroke-linecap%3D%22round%22%20opacity%3D%220.25%22%2F%3E%20%3C%2Fsvg%3E',   fb: '⚙️', mult: 625,
+      accent:'#c0712f', accentHover:'#d98c46', glow:'rgba(192,113,47,.5)',  beige:'#c9a98c', beigeDark:'#8a6038', bg:'#161310', bg2:'#221c16' },
+  ];
+  // Coût pour passer de l'ère i à i+1 (longueur = ERAS.length - 1).
+  const EVOLVE_COSTS = [500, 25000, 900000, 25000000];
+  const TH_MAX = 10;   // niveau maximum du village (Centre du village)
+
+  const PICK = { base: 25, growth: 1.6, power: 1 }; // amélioration de clic
+
+  // Bâtiments. `era` = ère à partir de laquelle le bâtiment est débloqué.
+  const BUILDINGS = [
+    // --- Âge de Pierre ---
+    { id: 'hut',     era: 0, img: 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%20%3Cpath%20d%3D%22M32%2056%20C30%2044%2030%2030%2034%2016%22%20fill%3D%22none%22%20stroke%3D%22%235a7a32%22%20stroke-width%3D%223.4%22%20stroke-linecap%3D%22round%22%2F%3E%20%3Cpath%20d%3D%22M33%2030%20C24%2028%2017%2031%2013%2038%20C23%2041%2030%2038%2033%2030%20Z%22%20fill%3D%22%237cae3f%22%20stroke%3D%22%233a2f25%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%20%3Cpath%20d%3D%22M33%2022%20C42%2019%2050%2022%2053%2030%20C43%2033%2036%2030%2033%2022%20Z%22%20fill%3D%22%238fc24c%22%20stroke%3D%22%233a2f25%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%20%3Ccircle%20cx%3D%2224%22%20cy%3D%2250%22%20r%3D%226%22%20fill%3D%22%23c8413a%22%20stroke%3D%22%233a2f25%22%20stroke-width%3D%222.4%22%2F%3E%20%3Ccircle%20cx%3D%2237%22%20cy%3D%2252%22%20r%3D%226%22%20fill%3D%22%23d9534a%22%20stroke%3D%22%233a2f25%22%20stroke-width%3D%222.4%22%2F%3E%20%3Ccircle%20cx%3D%2222%22%20cy%3D%2248%22%20r%3D%221.8%22%20fill%3D%22%23ffffff%22%20opacity%3D%220.7%22%2F%3E%20%3Ccircle%20cx%3D%2235%22%20cy%3D%2250%22%20r%3D%221.8%22%20fill%3D%22%23ffffff%22%20opacity%3D%220.7%22%2F%3E%20%3C%2Fsvg%3E',     fb: '🌿', name: 'Hutte de Cueilleurs',       base: 50,        growth: 1.15, pps: 1 },
+    { id: 'mush',    era: 0, img: 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%20%3Cpath%20d%3D%22M24%2034%20h16%20v14%20a8%208%200%200%201%20-16%200%20Z%22%20fill%3D%22%23efe2c6%22%20stroke%3D%22%233a2f25%22%20stroke-width%3D%223%22%20stroke-linejoin%3D%22round%22%2F%3E%20%3Cpath%20d%3D%22M10%2033%20C10%2019%2021%2011%2032%2011%20C43%2011%2054%2019%2054%2033%20C54%2037%2047%2038%2032%2038%20C17%2038%2010%2037%2010%2033%20Z%22%20fill%3D%22%23b5542f%22%20stroke%3D%22%233a2f25%22%20stroke-width%3D%223%22%20stroke-linejoin%3D%22round%22%2F%3E%20%3Cpath%20d%3D%22M10%2033%20C10%2022%2018%2014%2028%2012%20C20%2018%2016%2026%2016%2035%20C12%2035%2010%2034%2010%2033%20Z%22%20fill%3D%22%23c96b44%22%20opacity%3D%220.8%22%2F%3E%20%3Ccircle%20cx%3D%2224%22%20cy%3D%2222%22%20r%3D%223.4%22%20fill%3D%22%23f3e6c8%22%2F%3E%20%3Ccircle%20cx%3D%2238%22%20cy%3D%2220%22%20r%3D%222.6%22%20fill%3D%22%23f3e6c8%22%2F%3E%20%3Ccircle%20cx%3D%2244%22%20cy%3D%2228%22%20r%3D%223%22%20fill%3D%22%23f3e6c8%22%2F%3E%20%3Ccircle%20cx%3D%2231%22%20cy%3D%2228%22%20r%3D%222.2%22%20fill%3D%22%23f3e6c8%22%2F%3E%20%3C%2Fsvg%3E', fb: '🍄', name: 'Ramasseurs de Champignons', base: 250,       growth: 1.15, pps: 5 },
+    { id: 'fire',    era: 0, img: 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%20%3Crect%20x%3D%2212%22%20y%3D%2246%22%20width%3D%2240%22%20height%3D%228%22%20rx%3D%224%22%20fill%3D%22%237a5230%22%20stroke%3D%22%233a2f25%22%20stroke-width%3D%222.6%22%20transform%3D%22rotate(-18%2032%2050)%22%2F%3E%20%3Crect%20x%3D%2212%22%20y%3D%2246%22%20width%3D%2240%22%20height%3D%228%22%20rx%3D%224%22%20fill%3D%22%238c6038%22%20stroke%3D%22%233a2f25%22%20stroke-width%3D%222.6%22%20transform%3D%22rotate(18%2032%2050)%22%2F%3E%20%3Cpath%20d%3D%22M32%208%20C40%2018%2044%2024%2044%2033%20a12%2012%200%200%201%20-24%200%20C20%2026%2024%2022%2028%2026%20C28%2018%2030%2013%2032%208%20Z%22%20fill%3D%22%23f0922e%22%20stroke%3D%22%233a2f25%22%20stroke-width%3D%222.8%22%20stroke-linejoin%3D%22round%22%2F%3E%20%3Cpath%20d%3D%22M32%2020%20C37%2026%2039%2030%2039%2035%20a7%207%200%200%201%20-14%200%20C25%2031%2027%2029%2030%2031%20C30%2027%2031%2023%2032%2020%20Z%22%20fill%3D%22%23ffd23e%22%2F%3E%20%3C%2Fsvg%3E',     fb: '🔥', name: 'Feu de Camp',               base: 1100,      growth: 1.16, pps: 20 },
+    { id: 'mine',    era: 0, img: 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%20%3Cg%20stroke%3D%22%231f4f4a%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%3E%20%3Cpolygon%20points%3D%2218%2C30%2026%2C22%2031%2C30%2027%2C52%2020%2C52%22%20fill%3D%22%233fbfae%22%2F%3E%20%3Cpolygon%20points%3D%2244%2C26%2052%2C34%2046%2C54%2039%2C54%2038%2C32%22%20fill%3D%22%2334a89a%22%2F%3E%20%3Cpolygon%20points%3D%2230%2C14%2040%2C26%2035%2C56%2025%2C56%2022%2C28%22%20fill%3D%22%2357d6c4%22%2F%3E%20%3C%2Fg%3E%20%3Cpolygon%20points%3D%2230%2C14%2027%2C28%2031%2C30%2033%2C16%22%20fill%3D%22%23bff3ec%22%20opacity%3D%220.7%22%2F%3E%20%3Cpolygon%20points%3D%2244%2C26%2041%2C34%2045%2C36%2049%2C32%22%20fill%3D%22%237fe3d6%22%20opacity%3D%220.6%22%2F%3E%20%3C%2Fsvg%3E',  fb: '💠', name: 'Mine de Cristaux',          base: 6000,      growth: 1.17, pps: 90 },
+    { id: 'shaman',  era: 0, img: 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%20%3Cpath%20d%3D%22M20%2022%20C20%2012%2026%207%2032%207%20C38%207%2044%2012%2044%2022%20L46%2054%20C46%2057%2044%2058%2041%2058%20L23%2058%20C20%2058%2018%2057%2018%2054%20Z%22%20fill%3D%22%238c9296%22%20stroke%3D%22%233a2f25%22%20stroke-width%3D%223%22%20stroke-linejoin%3D%22round%22%2F%3E%20%3Cpath%20d%3D%22M20%2022%20C20%2012%2026%207%2032%207%20L31%2058%20L23%2058%20C20%2058%2018%2057%2018%2054%20Z%22%20fill%3D%22%23a3a9ad%22%20opacity%3D%220.6%22%2F%3E%20%3Cellipse%20cx%3D%2226%22%20cy%3D%2228%22%20rx%3D%223.4%22%20ry%3D%224.4%22%20fill%3D%22%232e2620%22%2F%3E%20%3Cellipse%20cx%3D%2238%22%20cy%3D%2228%22%20rx%3D%223.4%22%20ry%3D%224.4%22%20fill%3D%22%232e2620%22%2F%3E%20%3Cpath%20d%3D%22M24%2040%20q8%206%2016%200%22%20fill%3D%22none%22%20stroke%3D%22%233a2f25%22%20stroke-width%3D%222.6%22%20stroke-linecap%3D%22round%22%2F%3E%20%3Cpath%20d%3D%22M32%2012%20l5%208%20h-10%20Z%22%20fill%3D%22%23e0a85a%22%20stroke%3D%22%233a2f25%22%20stroke-width%3D%221.8%22%20stroke-linejoin%3D%22round%22%2F%3E%20%3C%2Fsvg%3E',      fb: '🔮', name: 'Hutte du Chaman',           base: 30000,     growth: 1.18, pps: 400 },
+    // --- Âge de Bronze ---
+    { id: 'foundry', era: 1, img: 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%20%3Crect%20x%3D%2224%22%20y%3D%2212%22%20width%3D%2210%22%20height%3D%2212%22%20fill%3D%22%236f767a%22%20stroke%3D%22%233a2f25%22%20stroke-width%3D%222.6%22%20stroke-linejoin%3D%22round%22%2F%3E%20%3Crect%20x%3D%2216%22%20y%3D%2222%22%20width%3D%2232%22%20height%3D%2234%22%20rx%3D%224%22%20fill%3D%22%238c9296%22%20stroke%3D%22%233a2f25%22%20stroke-width%3D%223%22%20stroke-linejoin%3D%22round%22%2F%3E%20%3Cpath%20d%3D%22M24%2056%20v-13%20a8%208%200%200%201%2016%200%20v13%20Z%22%20fill%3D%22%23f0922e%22%20stroke%3D%22%233a2f25%22%20stroke-width%3D%222.6%22%20stroke-linejoin%3D%22round%22%2F%3E%20%3Cpath%20d%3D%22M28%2056%20v-9%20a4%204%200%200%201%208%200%20v9%20Z%22%20fill%3D%22%23ffd23e%22%2F%3E%20%3Crect%20x%3D%2220%22%20y%3D%2225%22%20width%3D%225%22%20height%3D%2222%22%20rx%3D%222%22%20fill%3D%22%23ffffff%22%20opacity%3D%220.18%22%2F%3E%20%3C%2Fsvg%3E',  fb: '🏭', name: 'Fonderie de Bronze',        base: 60000,     growth: 1.16, pps: 1500 },
+    { id: 'potter',  era: 1, img: 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%20%3Cellipse%20cx%3D%2232%22%20cy%3D%2215%22%20rx%3D%229%22%20ry%3D%223.5%22%20fill%3D%22%23a85a30%22%20stroke%3D%22%233a2f25%22%20stroke-width%3D%222.4%22%2F%3E%20%3Cpath%20d%3D%22M24%2016%20C16%2026%2018%2040%2024%2050%20C27%2055%2037%2055%2040%2050%20C46%2040%2048%2026%2040%2016%20Z%22%20fill%3D%22%23c0703f%22%20stroke%3D%22%233a2f25%22%20stroke-width%3D%222.8%22%20stroke-linejoin%3D%22round%22%2F%3E%20%3Cpath%20d%3D%22M21%2033%20Q32%2039%2043%2033%22%20fill%3D%22none%22%20stroke%3D%22%237a4423%22%20stroke-width%3D%223%22%2F%3E%20%3Cpath%20d%3D%22M22%2027%20Q32%2032%2042%2027%22%20fill%3D%22none%22%20stroke%3D%22%23e0a85a%22%20stroke-width%3D%222.4%22%2F%3E%20%3Cpath%20d%3D%22M27%2021%20C23%2030%2024%2041%2027%2048%22%20fill%3D%22none%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22%20opacity%3D%220.22%22%2F%3E%20%3C%2Fsvg%3E',     fb: '🏺', name: 'Atelier de Potier',         base: 250000,    growth: 1.17, pps: 6000 },
+    // --- Âge de Fer ---
+    { id: 'forge',   era: 2, img: 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%20%3Cg%20stroke%3D%22%233a2f25%22%20stroke-width%3D%222.6%22%20stroke-linejoin%3D%22round%22%20fill%3D%22%238c9296%22%3E%20%3Cpolygon%20points%3D%2240%2C32%2054%2C34%2040%2C40%22%2F%3E%20%3Crect%20x%3D%2214%22%20y%3D%2230%22%20width%3D%2230%22%20height%3D%2210%22%20rx%3D%222%22%2F%3E%20%3Cpolygon%20points%3D%2226%2C40%2038%2C40%2034%2C47%2042%2C47%2042%2C53%2022%2C53%2022%2C47%2030%2C47%22%2F%3E%20%3C%2Fg%3E%20%3Cg%20stroke%3D%22%233a2f25%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%3E%20%3Crect%20x%3D%2229%22%20y%3D%226%22%20width%3D%226%22%20height%3D%2222%22%20rx%3D%222%22%20fill%3D%22%238a5a30%22%20transform%3D%22rotate(30%2032%2017)%22%2F%3E%20%3Crect%20x%3D%2220%22%20y%3D%226%22%20width%3D%2217%22%20height%3D%229%22%20rx%3D%222%22%20fill%3D%22%236f767a%22%20transform%3D%22rotate(30%2028%2010)%22%2F%3E%20%3C%2Fg%3E%20%3C%2Fsvg%3E',    fb: '⚒️', name: 'Forge de Fer',              base: 1200000,   growth: 1.17, pps: 30000 },
+    { id: 'barracks',era: 2, img: 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%20%3Cpath%20d%3D%22M32%206%20L52%2013%20V30%20C52%2044%2043%2053%2032%2058%20C21%2053%2012%2044%2012%2030%20V13%20Z%22%20fill%3D%22%239fb0bd%22%20stroke%3D%22%233a2f25%22%20stroke-width%3D%223%22%20stroke-linejoin%3D%22round%22%2F%3E%20%3Cpath%20d%3D%22M32%206%20L32%2058%20C21%2053%2012%2044%2012%2030%20V13%20Z%22%20fill%3D%22%237e8d99%22%20opacity%3D%220.5%22%2F%3E%20%3Cline%20x1%3D%2232%22%20y1%3D%2213%22%20x2%3D%2232%22%20y2%3D%2252%22%20stroke%3D%22%233a2f25%22%20stroke-width%3D%223%22%2F%3E%20%3Cline%20x1%3D%2214%22%20y1%3D%2229%22%20x2%3D%2250%22%20y2%3D%2229%22%20stroke%3D%22%233a2f25%22%20stroke-width%3D%223%22%2F%3E%20%3Ccircle%20cx%3D%2232%22%20cy%3D%2229%22%20r%3D%224.5%22%20fill%3D%22%23e0a85a%22%20stroke%3D%22%233a2f25%22%20stroke-width%3D%222%22%2F%3E%20%3C%2Fsvg%3E',   fb: '🛡️', name: 'Caserne',                   base: 6000000,   growth: 1.18, pps: 130000 },
+    // --- Antiquité ---
+    { id: 'market',  era: 3, img: 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%20%3Crect%20x%3D%2214%22%20y%3D%2230%22%20width%3D%224%22%20height%3D%2226%22%20fill%3D%22%238a5a30%22%20stroke%3D%22%233a2f25%22%20stroke-width%3D%222%22%2F%3E%20%3Crect%20x%3D%2246%22%20y%3D%2230%22%20width%3D%224%22%20height%3D%2226%22%20fill%3D%22%238a5a30%22%20stroke%3D%22%233a2f25%22%20stroke-width%3D%222%22%2F%3E%20%3Crect%20x%3D%2212%22%20y%3D%2244%22%20width%3D%2240%22%20height%3D%2212%22%20rx%3D%222%22%20fill%3D%22%23a06a38%22%20stroke%3D%22%233a2f25%22%20stroke-width%3D%222.6%22%2F%3E%20%3Ccircle%20cx%3D%2222%22%20cy%3D%2241%22%20r%3D%223%22%20fill%3D%22%237cae3f%22%20stroke%3D%22%233a2f25%22%20stroke-width%3D%221.6%22%2F%3E%20%3Ccircle%20cx%3D%2242%22%20cy%3D%2241%22%20r%3D%223%22%20fill%3D%22%23cf4a3f%22%20stroke%3D%22%233a2f25%22%20stroke-width%3D%221.6%22%2F%3E%20%3Cpath%20d%3D%22M10%2022%20H54%20V32%20H10%20Z%22%20fill%3D%22%23cf4a3f%22%20stroke%3D%22%233a2f25%22%20stroke-width%3D%222.6%22%20stroke-linejoin%3D%22round%22%2F%3E%20%3Cg%20fill%3D%22%23efe2c6%22%3E%20%3Crect%20x%3D%2217%22%20y%3D%2223%22%20width%3D%227%22%20height%3D%229%22%2F%3E%20%3Crect%20x%3D%2231%22%20y%3D%2223%22%20width%3D%227%22%20height%3D%229%22%2F%3E%20%3Crect%20x%3D%2245%22%20y%3D%2223%22%20width%3D%226%22%20height%3D%229%22%2F%3E%20%3C%2Fg%3E%20%3C%2Fsvg%3E',   fb: '🏪', name: 'Marché',                    base: 40000000,  growth: 1.18, pps: 700000 },
+    { id: 'temple',  era: 3, img: 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%20%3Cg%20stroke%3D%22%233a2f25%22%20stroke-width%3D%222.6%22%20stroke-linejoin%3D%22round%22%3E%20%3Cpolygon%20points%3D%2232%2C8%2056%2C24%208%2C24%22%20fill%3D%22%23ece4d3%22%2F%3E%20%3Crect%20x%3D%2210%22%20y%3D%2224%22%20width%3D%2244%22%20height%3D%226%22%20fill%3D%22%23ddd2bb%22%2F%3E%20%3Crect%20x%3D%228%22%20y%3D%2252%22%20width%3D%2248%22%20height%3D%226%22%20rx%3D%221%22%20fill%3D%22%23ddd2bb%22%2F%3E%20%3C%2Fg%3E%20%3Cg%20fill%3D%22%23ece4d3%22%20stroke%3D%22%233a2f25%22%20stroke-width%3D%222.2%22%3E%20%3Crect%20x%3D%2213%22%20y%3D%2230%22%20width%3D%227%22%20height%3D%2222%22%2F%3E%20%3Crect%20x%3D%2224%22%20y%3D%2230%22%20width%3D%227%22%20height%3D%2222%22%2F%3E%20%3Crect%20x%3D%2235%22%20y%3D%2230%22%20width%3D%227%22%20height%3D%2222%22%2F%3E%20%3Crect%20x%3D%2246%22%20y%3D%2230%22%20width%3D%227%22%20height%3D%2222%22%2F%3E%20%3C%2Fg%3E%20%3C%2Fsvg%3E',   fb: '🏛️', name: 'Temple',                    base: 200000000, growth: 1.19, pps: 3500000 },
+    // --- Ère Industrielle ---
+    { id: 'factory', era: 4, img: 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%20%3Cg%20fill%3D%22%239aa1a6%22%3E%20%3Ccircle%20cx%3D%2244%22%20cy%3D%2214%22%20r%3D%224%22%2F%3E%20%3Ccircle%20cx%3D%2251%22%20cy%3D%229%22%20r%3D%225%22%2F%3E%20%3Ccircle%20cx%3D%2247%22%20cy%3D%2221%22%20r%3D%223.5%22%2F%3E%20%3C%2Fg%3E%20%3Crect%20x%3D%2240%22%20y%3D%2220%22%20width%3D%228%22%20height%3D%2220%22%20fill%3D%22%237a4a2a%22%20stroke%3D%22%233a2f25%22%20stroke-width%3D%222.4%22%2F%3E%20%3Crect%20x%3D%228%22%20y%3D%2234%22%20width%3D%2236%22%20height%3D%2222%22%20rx%3D%222%22%20fill%3D%22%23b06a3a%22%20stroke%3D%22%233a2f25%22%20stroke-width%3D%222.6%22%20stroke-linejoin%3D%22round%22%2F%3E%20%3Cg%20fill%3D%22%23e9cd8e%22%3E%20%3Crect%20x%3D%2213%22%20y%3D%2244%22%20width%3D%226%22%20height%3D%228%22%2F%3E%20%3Crect%20x%3D%2223%22%20y%3D%2244%22%20width%3D%226%22%20height%3D%228%22%2F%3E%20%3Crect%20x%3D%2233%22%20y%3D%2244%22%20width%3D%226%22%20height%3D%228%22%2F%3E%20%3C%2Fg%3E%20%3C%2Fsvg%3E',  fb: '🏭', name: 'Usine à Vapeur',            base: 1500000000,growth: 1.19, pps: 25000000 },
+    { id: 'coal',    era: 4, img: 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%20%3Cg%20stroke%3D%22%231a1a1a%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%3E%20%3Cpolygon%20points%3D%2220%2C42%2013%2C30%2024%2C21%2035%2C28%2030%2C44%22%20fill%3D%22%233a3f44%22%2F%3E%20%3Cpolygon%20points%3D%2233%2C48%2029%2C34%2042%2C27%2053%2C36%2048%2C50%22%20fill%3D%22%232b2f33%22%2F%3E%20%3C%2Fg%3E%20%3Cpolygon%20points%3D%2224%2C21%2028%2C28%2022%2C32%2018%2C28%22%20fill%3D%22%235a626a%22%20opacity%3D%220.8%22%2F%3E%20%3Cpolygon%20points%3D%2242%2C27%2047%2C34%2040%2C37%2037%2C32%22%20fill%3D%22%234a525a%22%20opacity%3D%220.8%22%2F%3E%20%3C%2Fsvg%3E',     fb: '⚫', name: 'Mine de Charbon',           base: 8000000000,growth: 1.20, pps: 120000000 },
+  ];
+
+  // Héros uniques : recrutés une seule fois, ils rapportent de la « Force »
+  // (chaque point de Force = +1 % de production globale, clics ET PPS).
+  const HEROES = [
+    { id:'grok',   era:0, force:12,   cost:300,
+      name:'Grok le Chasseur',    role:'Âge de Pierre',
+      svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="27" fill="#8a6f4a" stroke="#2e2418" stroke-width="3"/><g transform="rotate(-30 32 32)" stroke="#2e2418" stroke-width="2"><rect x="22" y="29" width="20" height="6" rx="3" fill="#efe6d2"/><circle cx="22" cy="29" r="4" fill="#efe6d2"/><circle cx="22" cy="35" r="4" fill="#efe6d2"/><circle cx="42" cy="29" r="4" fill="#efe6d2"/><circle cx="42" cy="35" r="4" fill="#efe6d2"/></g></svg>` },
+    { id:'lua',    era:0, force:30,   cost:2500,
+      name:'Lua la Guérisseuse',  role:'Âge de Pierre',
+      svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="27" fill="#4f8a46" stroke="#23401f" stroke-width="3"/><path d="M32 16 C20 22 20 40 32 48 C44 40 44 22 32 16 Z" fill="#bfe39a" stroke="#23401f" stroke-width="2.4"/><path d="M32 19 L32 46" stroke="#23401f" stroke-width="2"/></svg>` },
+    { id:'bronn',  era:1, force:80,   cost:150000,
+      name:'Bronn le Forgeron',   role:'Âge de Bronze',
+      svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="27" fill="#cd7f32" stroke="#5a3614" stroke-width="3"/><g stroke="#2e2418" stroke-width="2.4" stroke-linejoin="round"><rect x="29" y="24" width="6" height="24" rx="2" fill="#8a5a30" transform="rotate(35 32 36)"/><rect x="20" y="18" width="20" height="11" rx="2" fill="#cfd6da" transform="rotate(35 30 23)"/></g></svg>` },
+    { id:'sigrid', era:2, force:200,  cost:3500000,
+      name:'Sigrid la Guerrière', role:'Âge de Fer',
+      svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="27" fill="#7e909c" stroke="#333b41" stroke-width="3"/><g stroke="#21272b" stroke-width="2.2" stroke-linejoin="round"><polygon points="32,12 36,40 28,40" fill="#e6edf1"/><rect x="22" y="40" width="20" height="5" rx="2" fill="#5a3a22"/><rect x="29" y="45" width="6" height="9" rx="2" fill="#7a4a2a"/></g></svg>` },
+    { id:'leon',   era:3, force:500,  cost:90000000,
+      name:'Léon le Stratège',    role:'Antiquité',
+      svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="27" fill="#cdb45f" stroke="#5e5022" stroke-width="3"/><g stroke="#3a2f10" stroke-width="2.2" stroke-linejoin="round"><rect x="20" y="20" width="24" height="24" rx="3" fill="#f3eccf"/></g><g stroke="#9a8540" stroke-width="2" stroke-linecap="round"><line x1="25" y1="27" x2="39" y2="27"/><line x1="25" y1="32" x2="39" y2="32"/><line x1="25" y1="37" x2="35" y2="37"/></g></svg>` },
+    { id:'edda',   era:4, force:1200, cost:4000000000,
+      name:'Edda l’Inventrice',   role:'Ère Industrielle',
+      svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="27" fill="#c0712f" stroke="#5a3414" stroke-width="3"/><circle cx="32" cy="28" r="12" fill="#ffe9a8" stroke="#2e2418" stroke-width="2.4"/><rect x="27" y="40" width="10" height="7" rx="2" fill="#8a9298" stroke="#2e2418" stroke-width="2.2"/><path d="M28 26 L32 31 L36 26" fill="none" stroke="#c0712f" stroke-width="2"/></svg>` },
+  ];
+
+  // ===================== Pillage =====================
+  const RAID_COOLDOWN = 10000;   // ms de récupération entre deux attaques
+  const V_PREFIX = ['Village','Hameau','Bourg','Camp','Clan','Tribu','Fort','Cité'];
+  const V_NAME = ['des Loups','de Pierre','du Nord','Sombre','d’Argile','Rouge','des Brumes',
+                  'du Vent','de l’Aigle','des Cendres','du Roc','d’Émeraude','du Lac','des Sangliers','Maudit'];
+  function randomVillageName() {
+    return V_PREFIX[Math.floor(Math.random() * V_PREFIX.length)] + ' ' +
+           V_NAME[Math.floor(Math.random() * V_NAME.length)];
+  }
+
+  // ===================== État =====================
+  const defaultState = () => ({
+    score: 0,
+    clickPower: 1,
+    pickLevel: 0,
+    era: 0,
+    buildings: Object.fromEntries(BUILDINGS.map(b => [b.id, 0])),
+    heroes: {},          // { idHéros: true } pour les héros recrutés
+    townHall: 1,         // niveau du Centre du village
+    nextDefenseTime: 0,  // prochaine attaque ennemie sur ton village
+    crystalHP: 0,        // points de vie du cristal courant (0 → initialisé au max)
+    crystalsBroken: 0,   // nombre de cristaux brisés
+    raid: null,          // village cible actuel { name, defense, loot }
+    nextRaidTime: 0,     // timestamp avant la prochaine attaque possible
+    raidWins: 0,
+    raidLosses: 0,
+    raidMsg: '',
+    raidMsgWin: false,
+    sound: true,
+  });
+  let state = load() || defaultState();
+
+  function costOf(b)    { return Math.ceil(b.base * Math.pow(b.growth, state.buildings[b.id])); }
+  function pickCost()   { return Math.ceil(PICK.base * Math.pow(PICK.growth, state.pickLevel)); }
+  function eraMult()    { return ERAS[state.era].mult; }
+  function unlocked(b)  { return b.era <= state.era; }
+  // Force totale (héros recrutés) → bonus multiplicatif global : +1 % par point de Force.
+  function forceTotal()         { return HEROES.reduce((s,h) => state.heroes[h.id] ? s + h.force : s, 0); }
+  function forceMult()          { return 1 + forceTotal() / 100; }
+  function recruitedCount()     { return HEROES.reduce((n,h) => state.heroes[h.id] ? n + 1 : n, 0); }
+  function totalBuildingsOwned(){ return BUILDINGS.reduce((s,b) => s + (state.buildings[b.id] || 0), 0); }
+  // Village
+  function townHallCost()  { return Math.ceil(2000 * Math.pow(5, state.townHall - 1)); }
+  function villageMult()   { return 1 + (state.townHall - 1) * 0.05; }            // +5 % de production / niveau
+  function villageHuts()   { return Math.min(6, state.era + Math.floor(totalBuildingsOwned() / 4)); }
+  function villageDefense(){ return Math.round(state.townHall * 30 + totalBuildingsOwned() * 3 + forceTotal() * 0.6); }
+  // PPS de base puis valeurs effectives (ère × Force × village).
+  function basePPS()    { return BUILDINGS.reduce((s,b) => unlocked(b) ? s + b.pps * state.buildings[b.id] : s, 0); }
+  function effPPS()     { return basePPS() * eraMult() * forceMult() * villageMult(); }
+  function effClick()   { return state.clickPower * eraMult() * forceMult() * villageMult(); }
+
+  // ===================== DOM =====================
+  const el = {
+    score:        document.getElementById('score'),
+    pps:          document.getElementById('pps'),
+    eraName:      document.getElementById('era-name'),
+    eraMult:      document.getElementById('era-mult'),
+    forceLine:    document.getElementById('force-line'),
+    heroes:       document.getElementById('heroes'),
+    raidCard:     document.getElementById('raid-card'),
+    villageScene: document.getElementById('village-scene'),
+    garrison:     document.getElementById('garrison'),
+    vhLevel:      document.getElementById('vh-level'),
+    vhDef:        document.getElementById('vh-def'),
+    vhTroops:     document.getElementById('vh-troops'),
+    vhForce:      document.getElementById('vh-force'),
+    vhCost:       document.getElementById('vh-cost'),
+    vhUpgrade:    document.getElementById('vh-upgrade'),
+    clicker:      document.getElementById('clicker'),
+    clickTag:     document.getElementById('click-power-tag'),
+    pickCount:    document.getElementById('pick-count'),
+    pickCost:     document.getElementById('pick-cost'),
+    buyPick:      document.getElementById('buy-pick'),
+    bPick:        document.getElementById('b-pick'),
+    buildings:    document.getElementById('buildings'),
+    evolveCard:   document.getElementById('evolve-card'),
+    evolveDesc:   document.getElementById('evolve-desc'),
+    evolveCost:   document.getElementById('evolve-cost'),
+    evolveNext:   document.getElementById('evolve-next-name'),
+    evolveBtn:    document.getElementById('evolve-btn'),
+    evolveProg:   document.getElementById('evolve-progress'),
+    evolveProgTx: document.getElementById('evolve-progress-text'),
+    evolveBonus:  document.getElementById('evolve-bonus'),
+    toast:        document.getElementById('toast'),
+    soundToggle:  document.getElementById('sound-toggle'),
+    resetBtn:     document.getElementById('reset-btn'),
+    topScore:     document.getElementById('top-score'),
+    topPps:       document.getElementById('top-pps'),
+    cracks:       document.getElementById('cracks'),
+    crystalFill:  document.getElementById('crystal-fill'),
+    crystalInfo:  document.getElementById('crystal-info'),
+  };
+
+  // Génère les lignes de bâtiments une seule fois (cachées tant que l'ère n'est pas atteinte)
+  BUILDINGS.forEach(b => {
+    const row = document.createElement('div');
+    row.className = 'building';
+    row.id = 'b-' + b.id;
+    row.dataset.era = b.era;
+    row.innerHTML = `
+      <div class="b-icon"><img src="${b.img}" alt="" onerror="this.outerHTML='${b.fb}'"></div>
+      <div class="b-info">
+        <h3>${b.name}</h3>
+        <p>+${fmt(b.pps)} PPS &middot; Possédés : <span class="owned" id="${b.id}-count">0</span></p>
+      </div>
+      <button class="buy-btn" id="buy-${b.id}">Acheter<small id="${b.id}-cost"></small></button>`;
+    el.buildings.appendChild(row);
+    document.getElementById('buy-' + b.id).addEventListener('click', () => buyBuilding(b));
+  });
+
+  // Génère les cartes de héros (portrait SVG intégré en data-URI)
+  HEROES.forEach(h => {
+    const row = document.createElement('div');
+    row.className = 'building';
+    row.id = 'h-' + h.id;
+    row.dataset.era = h.era;
+    const icon = 'data:image/svg+xml,' + encodeURIComponent(h.svg);
+    row.innerHTML = `
+      <div class="b-icon"><img class="hero-portrait" src="${icon}" alt=""></div>
+      <div class="b-info">
+        <h3>${h.name}</h3>
+        <p>${h.role} &middot; <span class="hero-force">+${fmt(h.force)} Force</span></p>
+      </div>
+      <button class="buy-btn" id="recruit-${h.id}">Recruter<small>${fmt(h.cost)} pts</small></button>`;
+    el.heroes.appendChild(row);
+    document.getElementById('recruit-' + h.id).addEventListener('click', () => recruit(h));
+  });
+
+  // ===================== Formatage =====================
+  function fmt(n) {
+    n = Math.floor(n);
+    const abs = Math.abs(n);
+    for (const [exp, suf] of [[1e15,' Bd'],[1e12,' Bn'],[1e9,' Md'],[1e6,' M']]) {
+      if (abs >= exp) return (n/exp).toFixed(2).replace('.', ',') + suf;
+    }
+    return n.toLocaleString('fr-FR');
+  }
+
+  // ===================== Rendu =====================
+  function render() {
+    const mult = eraMult();
+    el.score.textContent = fmt(state.score);
+    el.topScore.textContent = fmt(state.score);
+    el.topPps.textContent = fmt(effPPS());
+    el.pps.textContent = fmt(effPPS()) + ' points par seconde (PPS)';
+    el.clickTag.textContent = '+' + fmt(effClick()) + ' par clic';
+    el.eraMult.textContent = mult > 1 ? 'Bonus d’ère : ×' + mult : '';
+    const force = forceTotal();
+    el.forceLine.textContent = force > 0 ? '💪 Force : ' + fmt(force) + ' (+' + fmt(force) + ' % de production)' : '';
+
+    // Amélioration de clic
+    el.pickCount.textContent = state.pickLevel;
+    el.pickCost.textContent = fmt(pickCost()) + ' pts';
+    const canPick = state.score >= pickCost();
+    el.buyPick.disabled = !canPick;
+    el.bPick.classList.toggle('affordable', canPick);
+
+    // Bâtiments : masqués tant que l'ère n'est pas atteinte
+    BUILDINGS.forEach(b => {
+      const row = document.getElementById('b-' + b.id);
+      if (!unlocked(b)) { row.style.display = 'none'; return; }
+      row.style.display = '';
+      const c = costOf(b);
+      document.getElementById(b.id + '-count').textContent = state.buildings[b.id];
+      document.getElementById(b.id + '-cost').textContent = fmt(c) + ' pts';
+      const can = state.score >= c;
+      document.getElementById('buy-' + b.id).disabled = !can;
+      row.classList.toggle('affordable', can);
+    });
+
+    // Héros : masqués tant que l'ère n'est pas atteinte
+    HEROES.forEach(h => {
+      const row = document.getElementById('h-' + h.id);
+      if (!unlocked(h)) { row.style.display = 'none'; return; }
+      row.style.display = '';
+      const btn = document.getElementById('recruit-' + h.id);
+      if (state.heroes[h.id]) {
+        if (!btn.classList.contains('done')) {
+          btn.classList.add('done');
+          btn.disabled = true;
+          btn.innerHTML = '✓ Recruté';
+          row.classList.add('recruited');
+          row.classList.remove('affordable');
+        }
+      } else {
+        const can = state.score >= h.cost;
+        btn.disabled = !can;
+        row.classList.toggle('affordable', can);
+      }
+    });
+
+    // Panneau « Prochaine Ère »
+    const isLast = state.era >= ERAS.length - 1;
+    if (isLast) {
+      el.evolveDesc.innerHTML = '🏆 Votre civilisation a atteint son <b style="color:var(--accent)">apogée</b> (ère la plus avancée).';
+      el.evolveProg.style.width = '100%';
+      el.evolveProgTx.textContent = '';
+      el.evolveBtn.disabled = true;
+      el.evolveBtn.textContent = 'Apogée atteinte';
+      el.evolveBonus.textContent = '';
+    } else {
+      const cost = EVOLVE_COSTS[state.era];
+      const next = ERAS[state.era + 1];
+      el.evolveCost.textContent = fmt(cost);
+      el.evolveNext.textContent = next.name;
+      const pct = Math.min(100, state.score / cost * 100);
+      el.evolveProg.style.width = pct + '%';
+      el.evolveProgTx.textContent = fmt(Math.min(state.score, cost)) + ' / ' + fmt(cost);
+      el.evolveBtn.disabled = state.score < cost;
+      el.evolveBtn.textContent = 'Évoluer vers ' + next.name;
+      el.evolveBonus.textContent = 'Bonus de production ×' + next.mult + ' + 2 nouveaux bâtiments';
+    }
+
+    // Décompte de récupération du raid (mise à jour légère, sans reconstruire le panneau)
+    const ab = document.getElementById('raid-attack');
+    if (ab) {
+      const cd = state.nextRaidTime - Date.now();
+      if (cd > 0) { ab.disabled = true; ab.textContent = '⏳ ' + Math.ceil(cd / 1000) + 's'; }
+      else if (ab.disabled) { ab.disabled = false; ab.textContent = '⚔️ Attaquer'; }
+    }
+
+    renderVillage();
+
+    el.soundToggle.textContent = state.sound ? '🔊 Son' : '🔇 Muet';
+  }
+
+  // ===================== Achats =====================
+  function buyBuilding(b) {
+    if (!unlocked(b)) return;
+    const c = costOf(b);
+    if (state.score < c) return;
+    state.score -= c;
+    state.buildings[b.id]++;
+    blip(420);
+    render(); save();
+  }
+
+  function recruit(h) {
+    if (!unlocked(h) || state.heroes[h.id] || state.score < h.cost) return;
+    state.score -= h.cost;
+    state.heroes[h.id] = true;
+    blip(660);
+    showToast('🦸 ' + h.name + ' rejoint ton empire ! +' + fmt(h.force) + ' Force');
+    renderRaid(); render(); save();
+  }
+
+  // ===================== Pillage =====================
+  let isScanning = false;
+  const VILLAGE_ART = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 110"><path d="M0 88 Q100 74 200 88 L200 110 L0 110 Z" fill="#8a9a52" stroke="#5f6d38" stroke-width="2"/><g stroke="#3a2f25" stroke-width="2" stroke-linejoin="round"><rect x="26" y="64" width="34" height="26" rx="3" fill="#c9a877"/><polygon points="22,64 64,64 43,44" fill="#8a5a30"/><rect x="38" y="74" width="10" height="16" fill="#5f4326"/></g><g stroke="#3a2f25" stroke-width="2" stroke-linejoin="round"><rect x="80" y="54" width="44" height="36" rx="3" fill="#d8b78f"/><polygon points="74,54 130,54 102,30" fill="#a4642f"/><rect x="96" y="70" width="12" height="20" fill="#5f4326"/><rect x="84" y="60" width="9" height="9" fill="#7aa0b5"/></g><g stroke="#3a2f25" stroke-width="2" stroke-linejoin="round"><rect x="140" y="66" width="32" height="24" rx="3" fill="#c9a877"/><polygon points="136,66 176,66 156,48" fill="#8a5a30"/></g><line x1="102" y1="30" x2="102" y2="16" stroke="#3a2f25" stroke-width="2"/><polygon points="102,16 116,20 102,24" fill="#cf4a3f" stroke="#3a2f25" stroke-width="1.5"/></svg>`;
+
+  // Construit la scène (clouds + village) une seule fois ; renderRaid ne touche qu'à #raid-info
+  function buildRaidScene() {
+    el.raidCard.innerHTML = `
+      <div class="raid-scene" id="raid-scene">
+        <div class="village-art">${VILLAGE_ART}</div>
+        <div class="puff p1"></div><div class="puff p2"></div><div class="puff p3"></div>
+        <div class="puff p4"></div><div class="puff p5"></div>
+        <div class="scene-label" id="scene-label"></div>
+      </div>
+      <div id="raid-info"></div>`;
+  }
+
+  function winChance(defense) {
+    const F = forceTotal();
+    return (F + defense) > 0 ? F / (F + defense) : 0;
+  }
+
+  // Recherche = petite séquence : nuages qui défilent, puis on « atterrit » sur un village
+  function searchVillage() {
+    if (isScanning) return;
+    const scene = document.getElementById('raid-scene');
+    const label = document.getElementById('scene-label');
+    isScanning = true;
+    state.raid = null;
+    if (scene) { scene.classList.remove('revealed'); scene.classList.add('scanning'); }
+    if (label) label.textContent = '🌥️ Survol des terres…';
+    renderRaid();
+    setTimeout(() => {
+      const F = forceTotal();
+      const base = Math.max(10, F);
+      const defense = Math.round(base * (0.5 + Math.random() * 1.3));
+      const sec = 25 + Math.random() * 55;                     // butin ≈ 25–80 s de production
+      const loot = Math.round(effPPS() * sec + 50 + defense * 4);
+      state.raid = { name: randomVillageName(), defense, loot };
+      isScanning = false;
+      if (scene) { scene.classList.remove('scanning'); scene.classList.add('revealed'); }
+      if (label) label.textContent = '';
+      renderRaid(); save();
+    }, 1300);
+  }
+
+  function attackVillage() {
+    if (!state.raid || Date.now() < state.nextRaidTime) return;
+    const t = state.raid;
+    const win = Math.random() < winChance(t.defense);
+    if (win) {
+      state.score += t.loot;
+      state.raidWins++;
+      state.raidMsg = '🏆 Victoire ! Tu as pillé ' + fmt(t.loot) + ' points à ' + t.name + '.';
+      state.raidMsgWin = true;
+      blip(820);
+    } else {
+      state.raidLosses++;
+      state.raidMsg = '💥 Défaite… ' + t.name + ' a repoussé ton attaque. Recrute des héros pour plus de Force.';
+      state.raidMsgWin = false;
+      blip(170);
+      el.raidCard.classList.remove('shake'); void el.raidCard.offsetWidth; el.raidCard.classList.add('shake');
+    }
+    showToast(state.raidMsg);
+    state.raid = null;                                   // village consommé
+    state.nextRaidTime = Date.now() + RAID_COOLDOWN;
+    renderRaid(); render(); save();
+  }
+
+  // Met à jour #raid-info + l'état de la scène (sans reconstruire la scène ni casser l'anim)
+  function renderRaid() {
+    const scene = document.getElementById('raid-scene');
+    const info  = document.getElementById('raid-info');
+    const label = document.getElementById('scene-label');
+    if (!info) return;
+
+    if (!isScanning && scene) {
+      if (state.raid) { scene.classList.add('revealed'); scene.classList.remove('scanning'); if (label) label.textContent = ''; }
+      else { scene.classList.remove('revealed', 'scanning'); if (label) label.textContent = '☁️ Terres inexplorées'; }
+    }
+
+    const F = forceTotal();
+    let html = `<div class="raid-force">💪 Ta Force d'attaque : <b>${fmt(F)}</b></div>`;
+    if (F <= 0) html += `<div class="raid-hint">Recrute des héros pour gagner de la Force et pouvoir piller !</div>`;
+
+    if (isScanning) {
+      html += `<div class="raid-chance">🔭 Exploration en cours…</div>`;
+    } else if (!state.raid) {
+      html += `<button class="raid-btn search" id="raid-search">🔍 Chercher un village à piller</button>`;
+    } else {
+      const t = state.raid;
+      const pct = Math.round(winChance(t.defense) * 100);
+      const cd = state.nextRaidTime - Date.now();
+      html += `
+        <div class="raid-name">🏰 ${t.name}</div>
+        <div class="raid-stats">
+          <span>🛡️ Défense : <b>${fmt(t.defense)}</b></span>
+          <span>💰 Butin : <b>${fmt(t.loot)}</b></span>
+        </div>
+        <div class="raid-chance">Chances de victoire : <b>${pct}%</b></div>
+        <div class="raid-bar"><div style="width:${pct}%"></div></div>
+        <div class="raid-actions">
+          <button class="raid-btn attack" id="raid-attack" ${cd > 0 ? 'disabled' : ''}>${cd > 0 ? '⏳ ' + Math.ceil(cd / 1000) + 's' : '⚔️ Attaquer'}</button>
+          <button class="raid-btn" id="raid-skip">↻ Autre</button>
+        </div>`;
+    }
+    if (state.raidMsg) html += `<div class="raid-result ${state.raidMsgWin ? 'win' : 'lose'}">${state.raidMsg}</div>`;
+    html += `<div class="raid-tally">Victoires : ${state.raidWins} &middot; Défaites : ${state.raidLosses}</div>`;
+    info.innerHTML = html;
+  }
+
+  // Délégation : un seul écouteur sur le conteneur (survit aux reconstructions innerHTML)
+  el.raidCard.addEventListener('click', (e) => {
+    const id = e.target.id;
+    if (id === 'raid-search' || id === 'raid-skip') searchVillage();
+    else if (id === 'raid-attack') attackVillage();
+  });
+
+  // ===================== Mon Village =====================
+  // Rendu isométrique (vue 3D de dessus, façon Clash of Clans)
+  const ISO_W = 46, ISO_H = 23;            // largeur/hauteur d'une tuile iso
+  function darken(hex) {
+    const m = hex.replace('#', '');
+    if (m.length !== 6) return hex;
+    const f = i => Math.max(0, Math.round(parseInt(m.substr(i, 2), 16) * 0.78)).toString(16).padStart(2, '0');
+    return '#' + f(0) + f(2) + f(4);
+  }
+  function isoBuilding(P, ptsStr, it, wallL, wallR) {
+    const { c, r, w, d, wallH, roofH, roof, th } = it;
+    const A = P(c, r), B = P(c + w, r), C = P(c + w, r + d), D = P(c, r + d);
+    const up = p => [p[0], p[1] - wallH];
+    const At = up(A), Bt = up(B), Ct = up(C), Dt = up(D);
+    const E = [ (At[0] + Ct[0]) / 2, (At[1] + Ct[1]) / 2 - roofH ];
+    const poly = (pts, fill) => `<polygon points="${ptsStr(pts)}" fill="${fill}" stroke="#3a2f25" stroke-width="1.4" stroke-linejoin="round"/>`;
+    let s = '';
+    s += poly([D, C, Ct, Dt], wallL);     // mur gauche (sombre)
+    s += poly([B, C, Ct, Bt], wallR);     // mur droit (clair)
+    s += poly([At, Dt, E], darken(roof)); // toit arrière-gauche
+    s += poly([At, Bt, E], darken(roof)); // toit arrière-droit
+    s += poly([Dt, Ct, E], roof);         // toit avant-gauche
+    s += poly([Bt, Ct, E], roof);         // toit avant-droit
+    if (th) {
+      const fy = E[1] - 14;
+      s += `<line x1="${E[0].toFixed(1)}" y1="${E[1].toFixed(1)}" x2="${E[0].toFixed(1)}" y2="${fy.toFixed(1)}" stroke="#3a2f25" stroke-width="2"/>`;
+      s += `<polygon points="${E[0].toFixed(1)},${fy.toFixed(1)} ${(E[0]+12).toFixed(1)},${(fy+3).toFixed(1)} ${E[0].toFixed(1)},${(fy+6).toFixed(1)}" fill="#cf4a3f" stroke="#3a2f25" stroke-width="1"/>`;
+      for (let k = 0; k < 3; k++)
+        s += `<circle class="v-smoke" cx="${(E[0]-10).toFixed(1)}" cy="${(E[1]-2).toFixed(1)}" r="${(2.6 + k*0.7).toFixed(1)}" fill="#e6e6ea" style="animation-delay:${(k*0.85).toFixed(2)}s"/>`;
+    }
+    return `<g class="v-build${th ? ' v-th' : ''}" data-b="${th ? 'th' : 'hut'}">${s}</g>`;
+  }
+  function villageSceneSVG() {
+    const e = ERAS[state.era];
+    const ground = '#7faa4e', grassEdge = '#5f7d34', wallL = '#b39b73', wallR = '#cbb68f';
+    const cx = 140, cy = 42, N = 5, gH = 16;
+    const P = (c, r) => [cx + (c - r) * ISO_W / 2, cy + (c + r) * ISO_H / 2];
+    const ptsStr = pts => pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+
+    // socle de l'île (terrain + épaisseur de terre)
+    const T = P(0, 0), R = P(N, 0), Bo = P(N, N), Lf = P(0, N);
+    const dn = p => [p[0], p[1] + gH];
+    // nuages animés dans le ciel
+    const cloud = (x, y, sc, dur, delay) =>
+      `<g class="v-cloud" style="animation-duration:${dur}s;animation-delay:${delay}s">`
+      + `<ellipse cx="${x}" cy="${y}" rx="${(14*sc).toFixed(1)}" ry="${(8*sc).toFixed(1)}" fill="#fff" opacity=".9"/>`
+      + `<ellipse cx="${(x+10*sc).toFixed(1)}" cy="${y+2}" rx="${(10*sc).toFixed(1)}" ry="${(6*sc).toFixed(1)}" fill="#fff" opacity=".9"/>`
+      + `<ellipse cx="${(x-9*sc).toFixed(1)}" cy="${y+3}" rx="${(8*sc).toFixed(1)}" ry="${(5*sc).toFixed(1)}" fill="#fff" opacity=".85"/></g>`;
+    let inner = cloud(15, 24, 1, 26, 0) + cloud(115, 14, .8, 34, -12) + cloud(205, 30, 1.1, 30, -20);
+    inner += `<polygon points="${ptsStr([R, Bo, dn(Bo), dn(R)])}" fill="#6f4a2a"/>`;
+    inner += `<polygon points="${ptsStr([Lf, Bo, dn(Bo), dn(Lf)])}" fill="#5a3c22"/>`;
+    inner += `<polygon points="${ptsStr([T, R, Bo, Lf])}" fill="${ground}" stroke="${grassEdge}" stroke-width="2" stroke-linejoin="round"/>`;
+    // quadrillage des tuiles
+    let grid = '';
+    for (let i = 1; i < N; i++) {
+      grid += `<line x1="${P(i,0)[0].toFixed(1)}" y1="${P(i,0)[1].toFixed(1)}" x2="${P(i,N)[0].toFixed(1)}" y2="${P(i,N)[1].toFixed(1)}"/>`;
+      grid += `<line x1="${P(0,i)[0].toFixed(1)}" y1="${P(0,i)[1].toFixed(1)}" x2="${P(N,i)[0].toFixed(1)}" y2="${P(N,i)[1].toFixed(1)}"/>`;
+    }
+    inner += `<g stroke="${grassEdge}" stroke-width="1" opacity=".3">${grid}</g>`;
+
+    // bâtiments (hôtel de ville au centre + huttes), triés du fond vers l'avant
+    const huts = villageHuts();
+    const slots = [ {c:0,r:0}, {c:4,r:0}, {c:0,r:4}, {c:4,r:4}, {c:0,r:2}, {c:4,r:2} ];
+    const items = [ { c:1.5, r:1.5, w:2, d:2, wallH:36, roofH:24, roof:e.accent, th:true } ];
+    for (let i = 0; i < huts; i++)
+      items.push({ c:slots[i].c, r:slots[i].r, w:1, d:1, wallH:18, roofH:14, roof:e.beigeDark, th:false });
+    items.sort((a, b) => ((a.c + a.w/2) + (a.r + a.d/2)) - ((b.c + b.w/2) + (b.r + b.d/2)));
+    for (const it of items) inner += isoBuilding(P, ptsStr, it, wallL, wallR);
+
+    // villageois qui se promènent
+    const vil = (cc, rr, col, dur, delay) => {
+      const p = P(cc, rr);
+      return `<g class="v-villager" style="animation-duration:${dur}s;animation-delay:${delay}s">`
+        + `<ellipse cx="${p[0].toFixed(1)}" cy="${(p[1]-1).toFixed(1)}" rx="3" ry="1.5" fill="#00000033"/>`
+        + `<rect x="${(p[0]-2).toFixed(1)}" y="${(p[1]-9).toFixed(1)}" width="4" height="7" rx="2" fill="${col}"/>`
+        + `<circle cx="${p[0].toFixed(1)}" cy="${(p[1]-10).toFixed(1)}" r="2.3" fill="#e9c6a0"/></g>`;
+    };
+    inner += vil(2.5, 3.7, '#7a8a52', 5, 0) + vil(1.5, 2.7, '#9a5a3a', 6.5, -2) + vil(3.5, 2.3, '#5a6f8a', 5.8, -3.5);
+
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 185">${inner}</svg>`;
+  }
+  function rebuildVillageVisual() {
+    el.villageScene.innerHTML = villageSceneSVG();
+    let g = '';
+    HEROES.forEach(h => {
+      if (state.heroes[h.id])
+        g += `<img class="troop" src="data:image/svg+xml,${encodeURIComponent(h.svg)}" alt="" title="${h.name}">`;
+    });
+    el.garrison.innerHTML = g || '<span class="garrison-empty">Aucune troupe — recrute des héros !</span>';
+  }
+  let lastVillageSig = '';
+  function renderVillage() {
+    const sig = state.era + '|' + state.townHall + '|' + villageHuts() + '|' + recruitedCount();
+    if (sig !== lastVillageSig) { rebuildVillageVisual(); lastVillageSig = sig; }
+    el.vhLevel.textContent  = state.townHall;
+    el.vhDef.textContent    = fmt(villageDefense());
+    el.vhTroops.textContent = recruitedCount();
+    el.vhForce.textContent  = fmt(forceTotal());
+    if (state.townHall >= TH_MAX) {
+      el.vhCost.textContent = 'Niveau max';
+      el.vhUpgrade.disabled = true;
+    } else {
+      el.vhCost.textContent = fmt(townHallCost()) + ' pts';
+      el.vhUpgrade.disabled = state.score < townHallCost();
+    }
+  }
+  function upgradeVillage() {
+    if (state.townHall >= TH_MAX) return;
+    const c = townHallCost();
+    if (state.score < c) return;
+    state.score -= c;
+    state.townHall++;
+    blip(560);
+    showToast('🏡 Village amélioré au niveau ' + state.townHall + ' ! +5 % de production et défense renforcée.');
+    render(); save();
+  }
+  el.vhUpgrade.addEventListener('click', upgradeVillage);
+
+  // Interaction directe avec les bâtiments de la scène isométrique
+  el.villageScene.addEventListener('click', (ev) => {
+    const g = ev.target.closest && ev.target.closest('[data-b]');
+    if (!g) return;
+    g.classList.remove('tapped');
+    requestAnimationFrame(() => g.classList.add('tapped'));
+    setTimeout(() => g.classList.remove('tapped'), 360);
+    // Taper l'hôtel de ville l'améliore si possible
+    if (g.dataset.b === 'th' && state.townHall < TH_MAX && state.score >= townHallCost()) {
+      upgradeVillage();
+      return;
+    }
+    // Sinon : on récolte quelques points (comme un clic sur le minerai)
+    const gain = effClick();
+    if (Number.isFinite(gain)) state.score += gain;
+    spawnFloat(ev.clientX, ev.clientY, '+' + fmt(gain));
+    spawnParticles(ev.clientX, ev.clientY);
+    clickSound();
+    render();
+  });
+
+  // Attaque ennemie périodique sur TON village (la défense décide de l'issue)
+  function defenseEvent() {
+    const def = villageDefense();
+    const threat = Math.round((state.era + 1) * 50 * (0.6 + Math.random() * 0.9) + totalBuildingsOwned() * 1.5);
+    if (def >= threat) {
+      const bonus = Math.round(effPPS() * 15 + 25);
+      state.score += bonus;
+      showToast('🛡️ Ton village a repoussé une attaque (déf. ' + fmt(def) + ' vs ' + fmt(threat) + ') ! +' + fmt(bonus) + ' butin.');
+      blip(720);
+    } else {
+      const loss = Math.min(state.score * 0.02, effPPS() * 20);
+      state.score = Math.max(0, state.score - loss);
+      showToast('💥 Un clan ennemi a pillé ton village (déf. ' + fmt(def) + ' vs ' + fmt(threat) + ') ! -' + fmt(loss) + '. Améliore ton village !');
+      blip(180);
+    }
+    state.nextDefenseTime = Date.now() + 90000 + Math.random() * 90000;   // 1,5 – 3 min
+  }
+
+  el.buyPick.addEventListener('click', () => {
+    const c = pickCost();
+    if (state.score < c) return;
+    state.score -= c;
+    state.pickLevel++;
+    state.clickPower += PICK.power;
+    blip(520);
+    render(); save();
+  });
+
+  // ===================== Clic principal =====================
+  function bumpScore() {
+    el.score.classList.add('bump');
+    setTimeout(() => el.score.classList.remove('bump'), 90);
+  }
+
+  // ---- Cristal cassable ----
+  function crystalMax() { return 10 + state.era * 4 + Math.floor(state.pickLevel / 3); }
+  function renderCrystal() {
+    const max = crystalMax();
+    if (!Number.isFinite(state.crystalHP) || state.crystalHP <= 0 || state.crystalHP > max) state.crystalHP = max;
+    const frac = state.crystalHP / max;
+    if (el.crystalFill) el.crystalFill.style.width = (frac * 100).toFixed(1) + '%';
+    let st = 0;
+    if (frac <= 0.66) st = 1;
+    if (frac <= 0.40) st = 2;
+    if (frac <= 0.18) st = 3;
+    if (el.cracks) el.cracks.setAttribute('class', 'cracks' + (st ? ' s' + st : ''));
+    if (el.crystalInfo) el.crystalInfo.textContent = 'Cristaux brisés : ' + (state.crystalsBroken || 0);
+  }
+  function bigBurst(x, y) {
+    for (let i = 0; i < 20; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      const a = (Math.PI * 2 * i) / 20 + Math.random() * .4;
+      const dist = 60 + Math.random() * 70;
+      p.style.left = x + 'px'; p.style.top = y + 'px';
+      p.style.width = p.style.height = (8 + Math.random() * 8) + 'px';
+      p.style.setProperty('--dx', Math.cos(a) * dist + 'px');
+      p.style.setProperty('--dy', Math.sin(a) * dist + 'px');
+      p.style.background = ['var(--accent)', 'var(--beige)', '#ffffff'][i % 3];
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 600);
+    }
+  }
+  function breakSound() {
+    tone(180, .14, 'square', .18);
+    setTimeout(() => tone(520, .12, 'triangle', .16), 60);
+    setTimeout(() => tone(770, .18, 'triangle', .14), 130);
+  }
+
+  el.clicker.addEventListener('pointerdown', (e) => {
+    const gain = effClick();
+    if (Number.isFinite(gain)) state.score += gain;
+    el.clicker.classList.remove('clicked');
+    void el.clicker.offsetWidth;       // reflow pour rejouer l'anim
+    el.clicker.classList.add('clicked');
+    bumpScore();
+    spawnFloat(e.clientX, e.clientY, '+' + fmt(gain));
+    spawnParticles(e.clientX, e.clientY);
+    clickSound();
+
+    // dégâts au cristal → fissures, puis éclatement + butin
+    state.crystalHP = (Number.isFinite(state.crystalHP) ? state.crystalHP : crystalMax()) - 1;
+    if (state.crystalHP <= 0) {
+      const bonus = Math.max(10, Math.round(effClick() * crystalMax() * 1.2 + effPPS() * 4));
+      state.score += bonus;
+      state.crystalsBroken = (state.crystalsBroken || 0) + 1;
+      state.crystalHP = crystalMax();
+      el.clicker.classList.remove('shatter'); void el.clicker.offsetWidth; el.clicker.classList.add('shatter');
+      spawnFloat(e.clientX, e.clientY - 34, '💥 +' + fmt(bonus));
+      bigBurst(e.clientX, e.clientY);
+      breakSound();
+    }
+    renderCrystal();
+    render();
+  });
+
+  function spawnFloat(x, y, text) {
+    const f = document.createElement('div');
+    f.className = 'float';
+    f.textContent = text;
+    f.style.left = x + 'px';
+    f.style.top = y + 'px';
+    document.body.appendChild(f);
+    setTimeout(() => f.remove(), 850);
+  }
+
+  function spawnParticles(x, y) {
+    const n = 8;
+    for (let i = 0; i < n; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      const angle = (Math.PI * 2 * i) / n + Math.random() * .5;
+      const dist = 40 + Math.random() * 40;
+      p.style.left = x + 'px';
+      p.style.top = y + 'px';
+      p.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+      p.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+      p.style.background = Math.random() > .5 ? 'var(--accent)' : 'var(--beige)';
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 600);
+    }
+  }
+
+  // ===================== Évolution d'ère =====================
+  // Applique l'ambiance visuelle de l'ère courante (palette, fond, minerai, nom).
+  function applyEra() {
+    const e = ERAS[state.era];
+    const r = document.documentElement.style;
+    r.setProperty('--accent', e.accent);
+    r.setProperty('--accent-hover', e.accentHover);
+    r.setProperty('--accent-glow', e.glow);
+    r.setProperty('--beige', e.beige);
+    r.setProperty('--beige-dark', e.beigeDark);
+    r.setProperty('--bg', e.bg);
+    r.setProperty('--bg2', e.bg2);
+    el.eraName.textContent = e.name;
+    const img = el.clicker.querySelector('img');
+    if (img) img.src = e.central;   // (si l'image avait échoué, l'emoji de repli reste)
+  }
+
+  function flashEra() {
+    const f = document.createElement('div');
+    f.className = 'era-flash';
+    document.body.appendChild(f);
+    setTimeout(() => f.remove(), 1100);
+    el.clicker.classList.remove('evolving');
+    void el.clicker.offsetWidth;
+    el.clicker.classList.add('evolving');
+  }
+
+  el.evolveBtn.addEventListener('click', () => {
+    if (state.era >= ERAS.length - 1) return;
+    const cost = EVOLVE_COSTS[state.era];
+    if (state.score < cost) return;
+
+    state.score -= cost;
+    state.era++;
+    const e = ERAS[state.era];
+
+    applyEra();
+    flashEra();
+    showToast('🎉 Nouvelle ère : ' + e.name + ' ! Production globale ×' + e.mult);
+    blip(720);
+    render();   // rend visibles les nouveaux bâtiments
+
+    // Puis met en évidence ceux fraîchement débloqués
+    BUILDINGS.filter(b => b.era === state.era).forEach(b => {
+      const row = document.getElementById('b-' + b.id);
+      row.classList.remove('just-unlocked');
+      void row.offsetWidth;
+      row.classList.add('just-unlocked');
+    });
+    renderRaid();   // la Force d'attaque/affichage suit l'ère
+    save();
+  });
+
+  function showToast(msg) {
+    el.toast.textContent = msg;
+    el.toast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => el.toast.classList.remove('show'), 4200);
+  }
+
+  // ===================== Son (Web Audio) =====================
+  let audioCtx;
+  function ensureAudio() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  }
+  function tone(freq, dur, type, vol) {
+    if (!state.sound) return;
+    ensureAudio();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = type || 'triangle';
+    o.frequency.value = freq;
+    g.gain.setValueAtTime(vol || .14, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+    o.connect(g).connect(audioCtx.destination);
+    o.start();
+    o.stop(audioCtx.currentTime + dur);
+  }
+  function clickSound() {
+    // petite variation de hauteur pour un clic vivant
+    tone(300 + Math.random() * 120, .08, 'square', .12);
+  }
+  function blip(freq) { tone(freq, .15, 'triangle', .16); }
+
+  el.soundToggle.addEventListener('click', () => {
+    state.sound = !state.sound;
+    if (state.sound) { ensureAudio(); blip(600); }
+    render(); save();
+  });
+
+  // ===================== Sauvegarde =====================
+  function save() {
+    try { localStorage.setItem('civ-save', JSON.stringify(state)); } catch(e){}
+  }
+  function load() {
+    try {
+      const raw = localStorage.getItem('civ-save');
+      if (!raw) return null;
+      const s = JSON.parse(raw);
+      const base = defaultState();           // fusion pour compat. futures
+      base.buildings = Object.assign(base.buildings, s.buildings || {});
+      base.heroes = Object.assign(base.heroes, s.heroes || {});
+      const st = Object.assign(base, s, { buildings: base.buildings, heroes: base.heroes });
+
+      // Réparation d'une sauvegarde corrompue (NaN / Infinity / valeurs hors limites)
+      if (!Number.isFinite(st.score) || st.score < 0)        st.score = 0;
+      if (!Number.isFinite(st.clickPower) || st.clickPower < 1) st.clickPower = 1;
+      if (!Number.isInteger(st.pickLevel) || st.pickLevel < 0)  st.pickLevel = 0;
+      if (!Number.isInteger(st.era))                          st.era = 0;
+      st.era = Math.min(Math.max(st.era, 0), ERAS.length - 1);
+      BUILDINGS.forEach(b => {
+        const v = st.buildings[b.id];
+        st.buildings[b.id] = (Number.isFinite(v) && v >= 0) ? Math.floor(v) : 0;
+      });
+      if (!st.heroes || typeof st.heroes !== 'object') st.heroes = {};
+      // Village
+      if (!Number.isInteger(st.townHall) || st.townHall < 1) st.townHall = 1;
+      st.townHall = Math.min(st.townHall, TH_MAX);
+      // Cristal
+      if (!Number.isFinite(st.crystalHP)) st.crystalHP = 0;
+      if (!Number.isFinite(st.crystalsBroken) || st.crystalsBroken < 0) st.crystalsBroken = 0;
+      // Champs de pillage
+      if (!Number.isFinite(st.nextRaidTime)) st.nextRaidTime = 0;
+      if (!Number.isFinite(st.raidWins)   || st.raidWins   < 0) st.raidWins   = 0;
+      if (!Number.isFinite(st.raidLosses) || st.raidLosses < 0) st.raidLosses = 0;
+      if (typeof st.raidMsg !== 'string') st.raidMsg = '';
+      if (!st.raid || typeof st.raid !== 'object' ||
+          !Number.isFinite(st.raid.defense) || !Number.isFinite(st.raid.loot)) st.raid = null;
+      return st;
+    } catch(e) { return null; }
+  }
+
+  el.resetBtn.addEventListener('click', () => {
+    if (confirm('Réinitialiser toute votre progression ?')) {
+      state = defaultState();
+      applyEra(); renderRaid(); save(); render();
+      showToast('Progression réinitialisée.');
+    }
+  });
+
+  // ===================== Boucles =====================
+  // Production passive (10x/s, prorata)
+  setInterval(() => {
+    const gain = effPPS() / 10;
+    if (Number.isFinite(gain) && gain > 0) state.score += gain;
+    if (!Number.isFinite(state.score)) state.score = 0;   // garde-fou anti-NaN
+    if (Date.now() > state.nextDefenseTime) defenseEvent();
+    render();   // toujours rafraîchir (décompte du raid, boutons…)
+  }, 100);
+
+  // Sauvegarde auto toutes les 10 s
+  setInterval(save, 10000);
+  window.addEventListener('beforeunload', save);
+
+  // ===================== Décor : poussières =====================
+  (function makeDust(){
+    const host = document.getElementById('dust');
+    for (let i = 0; i < 30; i++) {
+      const s = document.createElement('span');
+      s.style.left = Math.random() * 100 + 'vw';
+      s.style.animationDuration = (14 + Math.random() * 16) + 's';
+      s.style.animationDelay = (-Math.random() * 20) + 's';
+      const sz = 2 + Math.random() * 4;
+      s.style.width = s.style.height = sz + 'px';
+      host.appendChild(s);
+    }
+  })();
+
+  // ===================== Onglets (vues) =====================
+  function showView(v) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === v));
+    document.getElementById('view-prod').classList.toggle('active', v === 'prod');
+    document.getElementById('view-village').classList.toggle('active', v === 'village');
+    try { localStorage.setItem('civ-tab', v); } catch (e) {}
+  }
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => showView(t.dataset.view)));
+
+  // ===================== Démarrage =====================
+  applyEra();   // restaure l'ambiance de l'ère sauvegardée
+  buildRaidScene();
+  renderRaid();
+  state.nextDefenseTime = Date.now() + 120000;   // 1re attaque ennemie ~2 min après l'ouverture
+  renderCrystal();
+  render();
+  try { showView(localStorage.getItem('civ-tab') === 'village' ? 'village' : 'prod'); } catch (e) {}
+</script>
+</body>
+</html>

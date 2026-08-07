@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="gL" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#bd93ff"/><stop offset="1" stop-color="#6b3fc9"/>
+    </linearGradient>
+    <linearGradient id="gR" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9d6cff"/><stop offset="1" stop-color="#4a2a8f"/>
+    </linearGradient>
+    <linearGradient id="gT" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#efe1ff"/><stop offset="1" stop-color="#bd93ff"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.45" r="0.6">
+      <stop offset="0" stop-color="#cba6ff" stop-opacity="0.6"/>
+      <stop offset="1" stop-color="#cba6ff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <ellipse cx="60" cy="62" rx="48" ry="52" fill="url(#glow)"/>
+  <g stroke="#2a1a4d" stroke-width="2.5" stroke-linejoin="round">
+    <polygon points="60,12 40,34 45,96 60,108" fill="url(#gL)"/>
+    <polygon points="60,12 80,34 75,96 60,108" fill="url(#gR)"/>
+    <polygon points="60,12 40,34 60,40" fill="url(#gT)"/>
+    <polygon points="60,12 80,34 60,40" fill="#a87cf0"/>
+    <polyline points="40,34 60,40 80,34" fill="none"/>
+    <polyline points="60,40 60,108" fill="none"/>
+  </g>
+  <polygon points="52,40 56.5,40 50,90 45.5,90" fill="#ffffff" opacity="0.38"/>
+  <circle cx="48" cy="30" r="3" fill="#ffffff" opacity="0.85"/>
+</svg>

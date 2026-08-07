@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cruz — Mes projets</title>
+<meta name="description" content="Tous mes jeux, sites et outils, au même endroit. Jouables directement dans le navigateur ou téléchargeables.">
+<meta name="theme-color" content="#E01A76">
+
+<!-- Aperçu quand on partage le lien (Discord, WhatsApp, etc.) -->
+<meta property="og:title" content="Cruz — Mes projets">
+<meta property="og:description" content="Tous mes jeux, sites et outils, au même endroit.">
+<meta property="og:type" content="website">
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%23E01A76'/><text x='50' y='72' font-size='62' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold'>C</text></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ===================== BARRE DU HAUT ===================== -->
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a class="logo" href="./">
+      <span class="logo-mark">C</span>
+      <span class="logo-text">Cruz<span class="logo-dot">.</span></span>
+    </a>
+    <nav class="topnav">
+      <a href="#projets">Projets</a>
+      <a href="#apropos">À propos</a>
+      <button id="btn-theme" class="icon-btn" type="button" aria-label="Changer de thème" title="Changer de thème">
+        <span class="theme-icon">◐</span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<!-- ===================== EN-TÊTE ===================== -->
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Fait maison, de A à Z</p>
+    <h1>Tous mes projets<br><span class="grad">au même endroit.</span></h1>
+    <p class="lede">
+      Des jeux, des sites, des petits outils. La plupart se lancent directement dans le
+      navigateur, en un clic, sans rien installer. Servez-vous.
+    </p>
+    <div class="stats" id="stats"></div>
+  </div>
+</section>
+
+<!-- ===================== FILTRES ===================== -->
+<div class="wrap toolbar" id="projets">
+  <div class="search">
+    <span class="search-icon">⌕</span>
+    <input type="search" id="recherche" placeholder="Chercher un projet…" autocomplete="off" aria-label="Chercher un projet">
+  </div>
+  <div class="chips" id="filtres" role="group" aria-label="Filtrer les projets">
+    <button class="chip actif" data-filtre="tous" type="button">Tout</button>
+    <button class="chip" data-filtre="jouer" type="button">Jouable en ligne</button>
+    <button class="chip" data-filtre="jeu" type="button">Jeux</button>
+    <button class="chip" data-filtre="outil" type="button">Outils</button>
+    <button class="chip" data-filtre="telecharger" type="button">À télécharger</button>
+  </div>
+</div>
+
+<!-- ===================== GRILLE DES PROJETS ===================== -->
+<main class="wrap">
+  <div class="grille" id="grille"></div>
+  <p class="vide" id="vide" hidden>Aucun projet ne correspond à cette recherche.</p>
+</main>
+
+<!-- ===================== À PROPOS ===================== -->
+<section class="apropos" id="apropos">
+  <div class="wrap apropos-inner">
+    <h2>À propos</h2>
+    <p>
+      Salut, moi c'est Cruz. Je fabrique des jeux, des sites et des outils pour le plaisir :
+      des jeux navigateur, un roguelite en Python, des mods Minecraft, des applis…
+      Cette page sert juste à tout regrouper pour que mes potes puissent y accéder
+      sans que j'aie à envoyer 40 fichiers sur Discord.
+    </p>
+    <p class="apropos-note">
+      Un projet qui bugue, une idée, une envie&nbsp;? Dis-le moi.
+    </p>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="wrap footer-inner">
+    <span>© <span id="annee"></span> Cruz</span>
+    <span class="footer-sep">•</span>
+    <span>Tout est codé à la main</span>
+  </div>
+</footer>
+
+<!-- ===================== FENÊTRE DÉTAILS ===================== -->
+<div class="modale" id="modale" hidden>
+  <div class="modale-fond" data-fermer></div>
+  <div class="modale-boite" role="dialog" aria-modal="true" aria-labelledby="modale-titre">
+    <button class="modale-fermer" type="button" data-fermer aria-label="Fermer">✕</button>
+    <div class="modale-cover" id="modale-cover"><span id="modale-emoji"></span></div>
+    <div class="modale-corps">
+      <h3 id="modale-titre"></h3>
+      <div class="tags" id="modale-tags"></div>
+      <p id="modale-details"></p>
+      <div class="encart" id="modale-install" hidden>
+        <strong>Comment l'installer</strong>
+        <p id="modale-install-texte"></p>
+      </div>
+      <a class="btn btn-primaire" id="modale-action" href="#">Ouvrir</a>
+    </div>
+  </div>
+</div>
+
+<script src="projets.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

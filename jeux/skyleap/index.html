@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SKYLEAP — Parkour dans les nuages</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="game">
+    <canvas id="scene"></canvas>
+
+    <!-- HUD -->
+    <div id="hud" class="hidden">
+      <div class="hud-top">
+        <div class="hud-pill"><span class="label">TEMPS</span><span id="timer">0.00</span></div>
+        <div class="hud-pill"><span class="label">ÉTOILES</span><span id="coins">0</span><span class="of">/ <span id="coinsTotal">0</span></span></div>
+        <div class="hud-pill"><span class="label">ANNEAUX</span><span id="rings" class="ring-c">0</span><span class="of">/ <span id="ringsTotal">0</span></span></div>
+        <div class="hud-pill"><span class="label">CHECKPOINT</span><span id="checkpoint" class="cp-c">Départ</span></div>
+      </div>
+      <button id="muteBtn" title="Couper le son (M)">🔊</button>
+      <div id="banner"></div>
+      <div class="hud-help">
+        <b>ZQSD / WASD</b> bouger &nbsp;·&nbsp; <b>ESPACE</b> sauter (double saut!) &nbsp;·&nbsp; <b>MAJ</b> sprint &nbsp;·&nbsp; <b>SOURIS</b> caméra &nbsp;·&nbsp; <b>R</b> respawn &nbsp;·&nbsp; <b>M</b> son
+      </div>
+    </div>
+
+    <!-- Menu -->
+    <div id="menu" class="overlay">
+      <div class="menu-card">
+        <h1>SKY<span>LEAP</span></h1>
+        <p class="tag">Un parkour 3D vertigineux au-dessus des nuages.</p>
+        <p class="desc">Grimpe à travers 5 mondes flottants jusqu'au sommet doré. Attrape les étoiles, traverse les anneaux, évite les boules d'épines et le vide. Tu as un <b>double saut</b> — utilise-le bien.</p>
+        <button id="playBtn">▶ JOUER</button>
+        <div class="controls">
+          <span><kbd>Z</kbd><kbd>Q</kbd><kbd>S</kbd><kbd>D</kbd> Déplacement</span>
+          <span><kbd>Espace</kbd> Saut / Double saut</span>
+          <span><kbd>Maj</kbd> Sprint</span>
+          <span><kbd>Souris</kbd> Caméra</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Victoire -->
+    <div id="win" class="overlay hidden">
+      <div class="menu-card">
+        <h1>🏆 SOMMET !</h1>
+        <p class="tag">Tu as conquis SkyLeap.</p>
+        <div class="stats">
+          <div><span id="winTime">0.00</span><small>secondes</small></div>
+          <div><span id="winCoins">0</span><small>étoiles</small></div>
+          <div><span id="winRings">0</span><small>anneaux</small></div>
+        </div>
+        <p id="winRank" class="rank"></p>
+        <button id="replayBtn">↻ REJOUER</button>
+      </div>
+    </div>
+
+    <div id="loading" class="overlay"><div class="spinner"></div><p>Chargement du ciel…</p></div>
+  </div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module" src="game.js"></script>
+</body>
+</html>

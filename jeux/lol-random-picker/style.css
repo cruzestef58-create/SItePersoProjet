@@ -1,0 +1,243 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at top, #1e2a4a 0%, #0a0e1a 60%);
+  color: #f0e6d2;
+  font-family: "Segoe UI", Arial, sans-serif;
+  padding: 24px 16px 60px;
+}
+
+.app {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 2.2rem;
+  color: #c8aa6e;
+  text-shadow: 0 0 12px rgba(200, 170, 110, 0.4);
+}
+
+.subtitle {
+  color: #a0a8b8;
+  margin-top: 6px;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.roll-btn {
+  background: linear-gradient(180deg, #c8aa6e, #8a6d2f);
+  border: none;
+  color: #0a0e1a;
+  font-weight: bold;
+  font-size: 1.1rem;
+  padding: 14px 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 4px 14px rgba(200, 170, 110, 0.3);
+}
+
+.roll-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(200, 170, 110, 0.5);
+}
+
+.roll-btn:active {
+  transform: translateY(0);
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #cdbe91;
+}
+
+select {
+  background: #1e2a4a;
+  color: #f0e6d2;
+  border: 1px solid #c8aa6e;
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.loading {
+  text-align: center;
+  color: #a0a8b8;
+  padding: 40px;
+  font-style: italic;
+}
+
+.champion-card {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #3c4257;
+  margin-bottom: 20px;
+  background: #10151f;
+}
+
+.champion-card img#champSplash {
+  width: 100%;
+  display: block;
+  max-height: 340px;
+  object-fit: cover;
+  object-position: center 20%;
+}
+
+.champion-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  background: linear-gradient(0deg, rgba(0,0,0,0.85), rgba(0,0,0,0));
+}
+
+.champ-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2px solid #c8aa6e;
+}
+
+.champion-info h2 {
+  margin: 0;
+  color: #f0e6d2;
+}
+
+.champion-info p {
+  margin: 2px 0 0;
+  color: #cdbe91;
+  font-size: 0.9rem;
+}
+
+.row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.col {
+  flex: 1 1 300px;
+  background: #10151f;
+  border: 1px solid #3c4257;
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+
+.col.full {
+  flex-basis: 100%;
+}
+
+.col h3 {
+  margin-top: 0;
+  color: #c8aa6e;
+  border-bottom: 1px solid #3c4257;
+  padding-bottom: 8px;
+}
+
+.pill-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pill-row img {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  border: 1px solid #3c4257;
+}
+
+.runes-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rune-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rune-line img {
+  width: 32px;
+  height: 32px;
+}
+
+.rune-line.keystone img {
+  width: 42px;
+  height: 42px;
+}
+
+.rune-line span {
+  font-size: 0.95rem;
+}
+
+.rune-tree-label {
+  font-size: 0.8rem;
+  color: #a0a8b8;
+  margin-top: 4px;
+}
+
+.item-grid {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.item-slot {
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  border: 1px solid #3c4257;
+  background: #1e2a4a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.item-slot img {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+}
+
+.item-slot .item-name {
+  position: absolute;
+  bottom: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.65rem;
+  white-space: nowrap;
+  color: #a0a8b8;
+}

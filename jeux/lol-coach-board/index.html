@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LoL Coach Board — Tableau tactique Faille de l'Invocateur</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">🗺️ <span>LoL Coach Board</span></div>
+
+  <div class="mode-switch">
+    <button id="modePlace" class="mode-btn active">🖱️ Placer</button>
+    <button id="modeDraw" class="mode-btn">✏️ Dessiner</button>
+  </div>
+
+  <div class="team-switch">
+    <span>Équipe :</span>
+    <button id="teamBlue" class="team-btn blue active">Bleue</button>
+    <button id="teamRed" class="team-btn red">Rouge</button>
+  </div>
+
+  <div class="zoom-tools">
+    <button id="zoomOut" title="Dézoomer">➖</button>
+    <span id="zoomLabel">100%</span>
+    <button id="zoomIn" title="Zoomer">➕</button>
+    <button id="zoomReset" title="Réinitialiser la vue">🎯</button>
+  </div>
+
+  <div class="token-size-tools">
+    <span title="Taille des jetons">📏</span>
+    <input type="range" id="tokenSize" min="16" max="90" value="40" title="Taille des champions/jetons">
+  </div>
+
+  <div class="draw-tools" id="drawTools" hidden>
+    <button class="tool-btn active" data-tool="pen" title="Crayon">✏️</button>
+    <button class="tool-btn" data-tool="arrow" title="Flèche">➡️</button>
+    <button class="tool-btn" data-tool="circle" title="Zone circulaire">⭕</button>
+    <button class="tool-btn" data-tool="text" title="Texte">🔤</button>
+    <button class="tool-btn" data-tool="eraser" title="Gomme">🧽</button>
+    <input type="color" id="penColor" value="#ffe066" title="Couleur">
+    <input type="range" id="penSize" min="1" max="20" value="4" title="Épaisseur">
+    <button id="clearDraw" title="Effacer le dessin">🗑️ Dessin</button>
+  </div>
+
+  <div class="clock-tools">
+    <span id="clockLabel">00:00</span>
+    <button id="clockToggle" title="Démarrer/Pause">▶️</button>
+    <button id="clockReset" title="Réinitialiser le chrono">🔄</button>
+  </div>
+
+  <div class="board-actions">
+    <button id="undoBtn" title="Annuler (Ctrl+Z)">↩️ Annuler</button>
+    <button id="exportBoard" title="Exporter en image PNG">🖼️ Exporter</button>
+    <button id="saveBoard">💾 Sauver</button>
+    <button id="loadBoard">📂 Charger</button>
+    <button id="clearAll">🧹 Tout effacer</button>
+  </div>
+</header>
+
+<div class="app-body">
+
+  <aside class="sidebar">
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="champions">Champions</button>
+      <button class="tab-btn" data-tab="objectives">Objectifs</button>
+      <button class="tab-btn" data-tab="minions">Sbires</button>
+    </div>
+
+    <div class="tab-panel active" id="panel-champions">
+      <input type="text" id="champSearch" placeholder="Rechercher un champion..." class="search-box">
+      <div id="champGrid" class="item-grid">Chargement des champions...</div>
+    </div>
+
+    <div class="tab-panel" id="panel-objectives">
+      <div id="objGrid" class="item-grid"></div>
+    </div>
+
+    <div class="tab-panel" id="panel-minions">
+      <div id="minionGrid" class="item-grid"></div>
+    </div>
+  </aside>
+
+  <main class="board-wrap">
+    <div class="board-viewport" id="boardViewport">
+      <div class="board" id="board">
+        <img id="mapImg" src="assets/map.jpg" alt="Faille de l'Invocateur">
+        <div id="tokenLayer" class="token-layer"></div>
+        <canvas id="drawCanvas" width="900" height="900"></canvas>
+      </div>
+    </div>
+    <p class="hint" id="hintText">Clique un élément à gauche puis clique sur la carte pour le placer. Glisse un jeton posé pour le déplacer. Clique-droit (ou double-clic) sur un jeton pour le supprimer. Molette = zoom, glisse le fond (sans outil armé) = déplacer la vue.</p>
+  </main>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
