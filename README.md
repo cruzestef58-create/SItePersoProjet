@@ -17,9 +17,9 @@ Le site s'ouvre dans ton navigateur. C'est tout, il n'y a rien à installer.
 ### Étape A — Créer le dépôt sur GitHub
 
 1. Va sur https://github.com/new
-2. Dans **Repository name**, écris exactement :
+2. Dans **Repository name**, écris exactement (attention à la casse) :
    ```
-   cruzestef58-create.github.io
+   SItePersoProjet
    ```
 3. Coche **Public** (obligatoire, sinon le site gratuit ne marche pas).
 4. **Ne coche RIEN d'autre** (pas de README, pas de .gitignore).
@@ -32,7 +32,7 @@ La première fois, une fenêtre GitHub s'ouvrira pour te demander de te connecte
 
 ### Étape C — Activer le site
 
-1. Va sur https://github.com/cruzestef58-create/cruzestef58-create.github.io/settings/pages
+1. Va sur https://github.com/cruzestef58-create/SItePersoProjet/settings/pages
 2. Dans **Source**, choisis **Deploy from a branch**.
 3. Branch : **main**, dossier : **/ (root)**. Clique sur **Save**.
 4. Attends 1 à 2 minutes.
@@ -40,7 +40,7 @@ La première fois, une fenêtre GitHub s'ouvrira pour te demander de te connecte
 ### Ton lien à envoyer aux potes
 
 ```
-https://cruzestef58-create.github.io
+https://cruzestef58-create.github.io/SItePersoProjet/
 ```
 
 ---

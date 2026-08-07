@@ -8,7 +8,7 @@ echo.
 if not exist ".git" (
   echo Premiere publication : preparation du depot...
   git init -b main
-  git remote add origin https://github.com/cruzestef58-create/cruzestef58-create.github.io.git
+  git remote add origin https://github.com/cruzestef58-create/SItePersoProjet.git
 )
 git add -A
 git commit -m "Mise a jour du site"
@@ -17,7 +17,7 @@ git push -u origin main
 echo.
 echo =========================================
 echo   Termine !
-echo   Ton site : https://cruzestef58-create.github.io
+echo   Ton site : https://cruzestef58-create.github.io/SItePersoProjet/
 echo =========================================
 echo.
 pause
