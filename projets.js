@@ -47,6 +47,39 @@ const PROJETS = [
   },
 
   {
+    titre: "QuizzlyUnivers",
+    resume: "L'univers du quizz : animaux, sciences, géo, histoire, films… Mode aléatoire ou contre-la-montre.",
+    details:
+      "Une vraie plateforme de quiz avec plusieurs univers : félins, oiseaux, canidés, reptiles, " +
+      "mammifères marins, mais aussi sciences, géographie, histoire et films & séries. " +
+      "Tu peux lancer un mode aléatoire de 10 questions tous thèmes confondus, ou te tester " +
+      "en QuizzlySpeed, le mode contre-la-montre. Les questions sont vérifiées et sourcées.",
+    emoji: "🦉",
+    couleurs: ["#0891B2", "#7C3AED"],
+    categorie: "jeu",
+    action: "jouer",
+    lien: "https://cruzestef58-create.github.io/QuizzlyUnivers/",
+    tags: ["Navigateur", "Quiz", "Culture G"],
+    annee: "2026"
+  },
+
+  {
+    titre: "Arcane Summoner",
+    resume: "Jeu gacha : invoque des personnages arcaniques, complète ta collection, monte ta meilleure équipe.",
+    details:
+      "Un gacha jouable dans le navigateur. Tu fais des invocations pour tirer des personnages " +
+      "arcaniques plus ou moins rares, tu gères ta collection, tu montes leurs stats et tu " +
+      "composes l'équipe la plus solide possible. Le plaisir du tirage, sans dépenser un centime.",
+    emoji: "🔮",
+    couleurs: ["#5E35B1", "#E01A76"],
+    categorie: "jeu",
+    action: "jouer",
+    lien: "https://cruzestef58-create.github.io/Arcane-Sommuner/",
+    tags: ["Navigateur", "Gacha", "Collection"],
+    annee: "2026"
+  },
+
+  {
     titre: "Tap Empire",
     resume: "Clicker de civilisation : tu commences avec une pierre et tu finis avec un empire.",
     details:
