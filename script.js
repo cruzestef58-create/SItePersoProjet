@@ -22,6 +22,11 @@
   function libelleAction(p) {
     return p.action === "telecharger" ? "Télécharger" : "Ouvrir";
   }
+  // "telechargements/Abysse.exe?v=2" -> "Abysse.exe"
+  // sert a garantir le bon nom du fichier telecharge malgre le "?v=" anti-cache.
+  function nomFichier(lien) {
+    return lien.split("?")[0].split("/").pop();
+  }
   function sansAccents(t) {
     return (t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
   }
@@ -59,7 +64,9 @@
           "<p>" + p.resume + "</p>" +
           '<div class="actions">' +
             '<a class="btn btn-primaire large" href="' + p.lien + '"' +
-              (p.action === "telecharger" ? " download" : ' target="_blank" rel="noopener"') +
+              (p.action === "telecharger"
+                ? ' download="' + nomFichier(p.lien) + '"'
+                : ' target="_blank" rel="noopener"') +
             ">" + libelleAction(p) + "</a>" +
             '<button class="btn btn-fantome" type="button" data-details="' + index + '">Détails</button>' +
           "</div>" +
@@ -114,7 +121,7 @@
     action.textContent = libelleAction(p);
     action.href = p.lien;
     if (p.action === "telecharger") {
-      action.setAttribute("download", "");
+      action.setAttribute("download", nomFichier(p.lien));
       action.removeAttribute("target");
     } else {
       action.removeAttribute("download");
