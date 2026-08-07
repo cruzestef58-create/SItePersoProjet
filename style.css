@@ -208,6 +208,9 @@ h1,h2,h3{margin:0;line-height:1.15;letter-spacing:-.02em}
 
 /* ------------------------------- MODALE --------------------------------- */
 .modale{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:20px}
+/* important : sans cette ligne, le display:grid ci-dessus ecrase l'attribut hidden
+   et la fenetre de details reste affichee (vide) au chargement de la page. */
+.modale[hidden]{display:none}
 .modale-fond{position:absolute;inset:0;background:rgba(16,10,13,.62);backdrop-filter:blur(4px);animation:fade .2s}
 .modale-boite{
   position:relative;z-index:1;width:min(520px,100%);max-height:88vh;overflow:auto;
