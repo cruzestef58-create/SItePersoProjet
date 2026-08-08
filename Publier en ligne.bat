@@ -6,19 +6,23 @@ echo   PUBLICATION DU SITE SUR GITHUB
 echo =========================================
 echo.
 
-rem --- Recupere automatiquement la derniere version d'Abysse ---
-rem     (evite de publier un vieux .exe en oubliant de le copier a la main)
+rem --- Recupere automatiquement les dernieres versions des projets ---
+rem     (evite de publier une vieille version en oubliant de la copier a la main)
+
 set "ABYSSE=%USERPROFILE%\Documents\Abysse\dist\Abysse.exe"
 if exist "%ABYSSE%" (
-  echo Verification de la version d'Abysse...
   xcopy /D /Y "%ABYSSE%" "%~dp0telechargements\" >nul
-  if errorlevel 1 (
-    echo    ATTENTION : la copie d'Abysse a echoue.
-  ) else (
-    echo    Abysse est a jour.
-  )
+  if errorlevel 1 (echo  [!] Abysse : la copie a echoue.) else (echo  [ok] Abysse est a jour.)
 ) else (
-  echo Abysse introuvable dans Documents\Abysse\dist - ignore.
+  echo  [-] Abysse introuvable dans Documents\Abysse\dist - ignore.
+)
+
+set "TAPEMPIRE=%USERPROFILE%\Documents\Tap Empire"
+if exist "%TAPEMPIRE%\index.html" (
+  robocopy "%TAPEMPIRE%" "%~dp0jeux\tap-empire" /MIR /XD .claude /NFL /NDL /NJH /NJS /NP >nul
+  if errorlevel 8 (echo  [!] Tap Empire : la copie a echoue.) else (echo  [ok] Tap Empire est a jour.)
+) else (
+  echo  [-] Tap Empire introuvable dans Documents\Tap Empire - ignore.
 )
 echo.
 

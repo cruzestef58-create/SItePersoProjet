@@ -39,7 +39,7 @@ const PROJETS = [
     // le "?v=2" force le navigateur a retelecharger la nouvelle version du jeu
     // au lieu de ressortir l'ancienne de son cache. Augmente le numero a chaque
     // fois que tu remplaces le .exe par une version plus recente.
-    lien: "telechargements/Abysse.exe?v=3",
+    lien: "telechargements/Abysse.exe?v=4",
     tags: ["Windows", "Roguelite", "Solo", "14 Mo"],
     vedette: true,
     annee: "2026",
@@ -84,17 +84,24 @@ const PROJETS = [
 
   {
     titre: "Tap Empire",
-    resume: "Clicker de civilisation : tu commences avec une pierre et tu finis avec un empire.",
+    resume: "Clicker de civilisation : 9 ères à traverser, de l'Âge de Pierre à l'Ère Spatiale, un clic à la fois.",
     details:
-      "Un jeu de clic addictif où tu fais évoluer une civilisation à travers les âges. " +
-      "Améliorations, production automatique, prestige... le combo classique du genre, " +
-      "jouable directement dans le navigateur, sur PC comme sur téléphone.",
+      "Un clicker/idle complet, en 3 onglets. En Production tu frappes le minerai central " +
+      "(il a des points de vie, se fissure et lâche un gros butin quand il éclate, avec des " +
+      "critiques ×7), tu achètes des bâtiments qui produisent tout seuls et tu changes d'ère " +
+      "pour multiplier ta production ×5. Au Village tu montes ta base, tu recrutes des héros " +
+      "et tu pilles les clans voisins — mais eux aussi viennent t'attaquer, donc surveille ta " +
+      "défense. Dans Empire tu débloques 28 succès et l'héritage : tu repars de zéro en gardant " +
+      "des reliques définitives. La partie se sauvegarde toute seule et tes bâtiments continuent " +
+      "de produire même quand tu n'es pas là (jusqu'à 8 h).",
     emoji: "👑",
     couleurs: ["#F0334A", "#F79D2E"],
     categorie: "jeu",
     action: "jouer",
-    lien: "jeux/tap-empire/",
-    tags: ["Navigateur", "Clicker", "Mobile OK"],
+    // le "?v=2" evite que ceux qui ont deja joue restent bloques sur l'ancienne
+    // version gardee en cache par leur navigateur. A augmenter a chaque grosse maj.
+    lien: "jeux/tap-empire/?v=2",
+    tags: ["Navigateur", "Clicker", "Idle", "Mobile OK"],
     annee: "2026"
   },
 
