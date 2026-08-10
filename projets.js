@@ -20,6 +20,10 @@
      tags        : les petits libellés sous le titre
      vedette     : true = grande carte mise en avant (1 seul conseillé)
      annee       : affichée dans les détails
+     install     : (facultatif) encadré "Comment l'installer" dans les détails
+     secondaire  : (facultatif) 2e bouton dans les détails, ex. la version
+                   application d'un jeu déjà jouable en ligne :
+                   secondaire: { libelle: "⬇ Application", lien: "https://..." }
    ========================================================================= */
 
 const PROJETS = [
@@ -47,6 +51,38 @@ const PROJETS = [
       "Windows va afficher un avertissement bleu « Windows a protégé votre ordinateur » : " +
       "c'est normal pour un jeu qui n'est pas signé. Clique sur « Informations complémentaires » " +
       "puis « Exécuter quand même ». Aucune installation, le jeu se lance directement."
+  },
+
+  {
+    titre: "NOVA CASINO",
+    resume: "Mini-casino arcade en crédits fictifs : 8 jeux, des contrats chronométrés à réussir, une boutique. Aucun argent réel.",
+    details:
+      "Un casino arcade complet, en crédits fictifs uniquement — rien ne s'achète, rien ne se retire. " +
+      "8 tables : la Fusée (crash), Mines, Plinko, la Roue, les Dés, la Machine à sous, le Blackjack " +
+      "et le Plus ou moins. Mais on ne joue pas librement au début : il faut accepter un contrat " +
+      "(capital de départ, objectif, chronomètre), et chacun débloque le suivant jusqu'au Va-tout " +
+      "— 500 crédits à transformer en 25 000 en 3 minutes. Réussir un contrat rapporte une prime " +
+      "à dépenser dans la boutique : 18 objets cosmétiques, 4 raretés, et des caisses à ouvrir. " +
+      "Tout le son est synthétisé à la volée, il n'y a pas un seul fichier audio ni une seule image " +
+      "dans le jeu. Les taux de retour sont volontairement sous les 100 % : plus tu joues, plus tu " +
+      "perds en moyenne — c'est exactement ce que le jeu cherche à montrer.",
+    emoji: "🎰",
+    couleurs: ["#B4237A", "#5E35B1"],
+    categorie: "jeu",
+    action: "jouer",
+    lien: "https://cruzestef58-create.github.io/Casinonova/",
+    tags: ["Navigateur", "Appli Windows", "Arcade", "Hors ligne"],
+    annee: "2026",
+    install:
+      "Le jeu marche directement dans le navigateur, sans rien installer. Tu peux aussi l'installer " +
+      "en application : le bouton « ⬇ Installer » dans la barre du haut du jeu crée une icône sur ton " +
+      "bureau, et il fonctionne alors entièrement hors ligne. Sinon, l'installeur Windows classique " +
+      "est en dessous — Windows affichera un avertissement « Éditeur inconnu », clique sur " +
+      "« Informations complémentaires » puis « Exécuter quand même ».",
+    secondaire: {
+      libelle: "⬇ Application Windows (96 Mo)",
+      lien: "https://github.com/cruzestef58-create/Casinonova/releases/latest/download/NOVA-CASINO-Setup-1.0.0.exe"
+    }
   },
 
   {

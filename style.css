@@ -236,7 +236,9 @@ h1,h2,h3{margin:0;line-height:1.15;letter-spacing:-.02em}
 }
 .encart strong{font-size:13px;display:block;margin-bottom:4px}
 .encart p{margin:0;font-size:13.5px;color:var(--texte-doux)}
-#modale-action{width:100%}
+.modale-actions{display:flex;flex-direction:column;gap:9px}
+.modale-actions .btn{width:100%}
+.modale-actions .btn[hidden]{display:none}
 
 /* ------------------------------ RESPONSIVE ------------------------------ */
 @media (max-width:900px){

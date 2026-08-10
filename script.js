@@ -129,6 +129,18 @@
       action.rel = "noopener";
     }
 
+    // 2e bouton optionnel (ex : la version application d'un jeu jouable en ligne)
+    var action2 = document.getElementById("modale-action2");
+    if (p.secondaire) {
+      action2.textContent = p.secondaire.libelle;
+      action2.href = p.secondaire.lien;
+      action2.target = "_blank";
+      action2.rel = "noopener";
+      action2.hidden = false;
+    } else {
+      action2.hidden = true;
+    }
+
     modale.hidden = false;
     document.body.style.overflow = "hidden";
   }
