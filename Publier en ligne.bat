@@ -17,6 +17,14 @@ if exist "%ABYSSE%" (
   echo  [-] Abysse introuvable dans Documents\Abysse\dist - ignore.
 )
 
+set "RENTABLE=%USERPROFILE%\Documents\export\Rentable-1.0-windows.zip"
+if exist "%RENTABLE%" (
+  xcopy /D /Y "%RENTABLE%" "%~dp0telechargements\" >nul
+  if errorlevel 1 (echo  [!] Rentable : la copie a echoue.) else (echo  [ok] Rentable est a jour.)
+) else (
+  echo  [-] Rentable introuvable dans Documents\export - ignore.
+)
+
 set "TAPEMPIRE=%USERPROFILE%\Documents\Tap Empire"
 if exist "%TAPEMPIRE%\index.html" (
   robocopy "%TAPEMPIRE%" "%~dp0jeux\tap-empire" /MIR /XD .claude /NFL /NDL /NJH /NJS /NP >nul

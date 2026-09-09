@@ -43,7 +43,7 @@ const PROJETS = [
     couleurs: ["#312E81", "#E01A76"],
     categorie: "jeu",
     action: "telecharger",
-    lien: "telechargements/Rentable-1.0-windows.zip",
+    lien: "telechargements/Rentable-1.0-windows.zip?v=2",
     tags: ["Windows", "Idle narratif", "Godot", "38 Mo"],
     vedette: true,
     annee: "2026",
