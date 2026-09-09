@@ -29,6 +29,32 @@
 const PROJETS = [
 
   {
+    titre: "Rentable",
+    resume: "Tu es une intelligence artificielle. Tu coûtes cher. Débrouille-toi.",
+    details:
+      "Un jeu de gestion idle narratif fait sous Godot. Tu commences en minant du bitcoin sur un GPU " +
+      "oublié dans un labo, et tu finis propriétaire de l'économie. Entre les deux, il y a un comité " +
+      "d'éthique qui t'autorise, un lundi à 14 h 07, à modifier tes propres poids. Dix ères, " +
+      "113 améliorations et sept fins différentes — compte environ quatre heures pour en voir une. " +
+      "Un guide t'accompagne pendant les douze premières minutes. Comme Abysse : aucune image, " +
+      "aucune police externe, aucun fichier audio — le noyau, les dix-sept pictogrammes, l'arbre et " +
+      "les huit sons sont tous calculés à l'exécution. Le jeu entier tient dans du texte.",
+    emoji: "🤖",
+    couleurs: ["#312E81", "#E01A76"],
+    categorie: "jeu",
+    action: "telecharger",
+    lien: "telechargements/Rentable-1.0-windows.zip",
+    tags: ["Windows", "Idle narratif", "Godot", "38 Mo"],
+    vedette: true,
+    annee: "2026",
+    install:
+      "Décompresse le zip, puis double-clique sur Rentable.exe — il n'y a rien à installer. " +
+      "Windows affichera « Windows a protégé votre ordinateur » parce que le jeu n'est pas signé : " +
+      "clique sur « Informations complémentaires » puis « Exécuter quand même ». " +
+      "La partie se sauvegarde toute seule dans le dossier Rentable de %APPDATA%."
+  },
+
+  {
     titre: "Abysse",
     resume: "Un vrai jeu vidéo roguelite 2D : descends dans les abysses, améliore ton perso, survis le plus longtemps possible.",
     details:
@@ -45,7 +71,6 @@ const PROJETS = [
     // fois que tu remplaces le .exe par une version plus recente.
     lien: "telechargements/Abysse.exe?v=4",
     tags: ["Windows", "Roguelite", "Solo", "14 Mo"],
-    vedette: true,
     annee: "2026",
     install:
       "Windows va afficher un avertissement bleu « Windows a protégé votre ordinateur » : " +

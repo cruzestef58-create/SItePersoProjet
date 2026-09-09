@@ -1,17 +1,19 @@
 /* =========================================================================
    Le moteur du site : il lit la liste PROJETS (dans projets.js)
-   et fabrique les cartes, la recherche, les filtres et la fenêtre détails.
+   et fabrique la vitrine, les tuiles, la recherche, les filtres et la
+   fenêtre détails.
    Tu n'as normalement pas besoin de toucher à ce fichier.
    ========================================================================= */
 
 (function () {
   "use strict";
 
-  var grille   = document.getElementById("grille");
-  var vide     = document.getElementById("vide");
-  var recherche= document.getElementById("recherche");
-  var filtres  = document.getElementById("filtres");
-  var modale   = document.getElementById("modale");
+  var grille    = document.getElementById("grille");
+  var vide      = document.getElementById("vide");
+  var recherche = document.getElementById("recherche");
+  var filtres   = document.getElementById("filtres");
+  var modale    = document.getElementById("modale");
+  var vitrine   = document.getElementById("vitrine");
 
   var filtreActif = "tous";
 
@@ -22,52 +24,66 @@
   function libelleAction(p) {
     return p.action === "telecharger" ? "Télécharger" : "Ouvrir";
   }
-  // "telechargements/Abysse.exe?v=2" -> "Abysse.exe"
-  // sert a garantir le bon nom du fichier telecharge malgre le "?v=" anti-cache.
+  // "telechargements/Abysse.exe?v=4" -> "Abysse.exe"
+  // garantit le bon nom du fichier telecharge malgre le "?v=" anti-cache.
   function nomFichier(lien) {
     return lien.split("?")[0].split("/").pop();
   }
   function sansAccents(t) {
     return (t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
   }
-
-  /* ------------------------------ les chiffres ---------------------------- */
-  function afficherStats() {
-    var enLigne = PROJETS.filter(function (p) { return p.action === "jouer"; }).length;
-    var jeux    = PROJETS.filter(function (p) { return p.categorie === "jeu"; }).length;
-    var data = [
-      [PROJETS.length, "projets"],
-      [enLigne, "jouables en ligne"],
-      [jeux, "jeux"]
-    ];
-    document.getElementById("stats").innerHTML = data.map(function (d) {
-      return '<div class="stat"><b>' + d[0] + "</b><span>" + d[1] + "</span></div>";
-    }).join("");
-  }
-
-  /* ------------------------------- les cartes ----------------------------- */
-  function carteHTML(p, index) {
-    var badge = p.action === "telecharger" ? "Téléchargement" : "En ligne";
-    var tags = (p.tags || []).map(function (t) {
+  function tagsHTML(liste) {
+    return (liste || []).map(function (t) {
       return '<span class="tag">' + t + "</span>";
     }).join("");
+  }
+  // le lien d'action d'un projet, avec les bons attributs selon son type
+  function lienHTML(p, classes, libelle) {
+    return '<a class="' + classes + '" href="' + p.lien + '"' +
+      (p.action === "telecharger"
+        ? ' download="' + nomFichier(p.lien) + '"'
+        : ' target="_blank" rel="noopener"') +
+      ">" + (libelle || libelleAction(p)) + "</a>";
+  }
 
-    return (
-      '<article class="carte' + (p.vedette ? " vedette" : "") + '">' +
-        '<div class="cover" style="background:' + degrade(p) + '">' +
-          '<span class="badge">' + badge + "</span>" +
-          "<span>" + p.emoji + "</span>" +
+  /* ------------------------- la vitrine du haut --------------------------- */
+  function afficherVitrine() {
+    var p = PROJETS.filter(function (x) { return x.vedette; })[0] || PROJETS[0];
+    var i = PROJETS.indexOf(p);
+
+    vitrine.innerHTML =
+      '<div class="vitrine-fond" style="background:' + degrade(p) + '"></div>' +
+      '<div class="vitrine-inner">' +
+        '<span class="vitrine-etiquette">À la une</span>' +
+        '<div class="vitrine-emoji">' + p.emoji + "</div>" +
+        "<h1>" + p.titre + "</h1>" +
+        '<p class="vitrine-phrase">' + p.resume + "</p>" +
+        '<div class="tags">' + tagsHTML(p.tags) + "</div>" +
+        '<div class="actions">' +
+          lienHTML(p, "btn btn-primaire") +
+          '<button class="btn btn-fantome" type="button" data-details="' + i + '">En savoir plus</button>' +
         "</div>" +
-        '<div class="carte-corps">' +
+      "</div>";
+  }
+
+  /* ------------------------------- les tuiles ----------------------------- */
+  function tuileHTML(p, index) {
+    var enLigne = p.action !== "telecharger";
+    return (
+      '<article class="tuile">' +
+        '<div class="cover">' +
+          '<div class="cover-degrade" style="background:' + degrade(p) + '"></div>' +
+          '<span class="badge' + (enLigne ? " en-ligne" : "") + '">' +
+            (enLigne ? "En ligne" : "Téléchargement") +
+          "</span>" +
+          '<span class="cover-emoji">' + p.emoji + "</span>" +
+        "</div>" +
+        '<div class="tuile-corps">' +
           "<h3>" + p.titre + "</h3>" +
-          '<div class="tags">' + tags + "</div>" +
+          '<div class="tags">' + tagsHTML(p.tags) + "</div>" +
           "<p>" + p.resume + "</p>" +
           '<div class="actions">' +
-            '<a class="btn btn-primaire large" href="' + p.lien + '"' +
-              (p.action === "telecharger"
-                ? ' download="' + nomFichier(p.lien) + '"'
-                : ' target="_blank" rel="noopener"') +
-            ">" + libelleAction(p) + "</a>" +
+            lienHTML(p, "btn btn-primaire large") +
             '<button class="btn btn-fantome" type="button" data-details="' + index + '">Détails</button>' +
           "</div>" +
         "</div>" +
@@ -91,7 +107,7 @@
     });
 
     grille.innerHTML = liste.map(function (p) {
-      return carteHTML(p, PROJETS.indexOf(p));
+      return tuileHTML(p, PROJETS.indexOf(p));
     }).join("");
 
     vide.hidden = liste.length > 0;
@@ -105,9 +121,7 @@
     document.getElementById("modale-details").textContent = p.details || p.resume;
 
     document.getElementById("modale-tags").innerHTML =
-      (p.tags || []).concat(p.annee ? [p.annee] : []).map(function (t) {
-        return '<span class="tag">' + t + "</span>";
-      }).join("");
+      tagsHTML((p.tags || []).concat(p.annee ? [p.annee] : []));
 
     var encart = document.getElementById("modale-install");
     if (p.install) {
@@ -150,25 +164,6 @@
     document.body.style.overflow = "";
   }
 
-  /* ------------------------------ le thème -------------------------------- */
-  function appliquerTheme(t) {
-    document.documentElement.setAttribute("data-theme", t);
-    try { localStorage.setItem("theme", t); } catch (e) {}
-  }
-
-  var themeSauve = null;
-  try { themeSauve = localStorage.getItem("theme"); } catch (e) {}
-  if (themeSauve) {
-    appliquerTheme(themeSauve);
-  } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-    appliquerTheme("sombre");
-  }
-
-  document.getElementById("btn-theme").addEventListener("click", function () {
-    var actuel = document.documentElement.getAttribute("data-theme");
-    appliquerTheme(actuel === "sombre" ? "clair" : "sombre");
-  });
-
   /* ------------------------------ les écoutes ----------------------------- */
   recherche.addEventListener("input", afficher);
 
@@ -182,7 +177,8 @@
     afficher();
   });
 
-  grille.addEventListener("click", function (e) {
+  // les boutons "Détails" existent dans la grille ET dans la vitrine
+  document.addEventListener("click", function (e) {
     var btn = e.target.closest("[data-details]");
     if (btn) ouvrirModale(PROJETS[Number(btn.dataset.details)]);
   });
@@ -197,6 +193,6 @@
 
   /* ------------------------------- démarrage ------------------------------ */
   document.getElementById("annee").textContent = new Date().getFullYear();
-  afficherStats();
+  afficherVitrine();
   afficher();
 })();
