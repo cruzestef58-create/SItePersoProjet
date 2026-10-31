@@ -1,7 +1,7 @@
 /* =========================================================================
    Le moteur du site : il lit la liste PROJETS (dans projets.js)
-   et fabrique la vitrine, les tuiles, la recherche, les filtres et la
-   fenêtre détails.
+   et fabrique les compteurs des catégories, les tuiles, la recherche,
+   les filtres et la fenêtre détails.
    Tu n'as normalement pas besoin de toucher à ce fichier.
    ========================================================================= */
 
@@ -13,7 +13,7 @@
   var recherche = document.getElementById("recherche");
   var filtres   = document.getElementById("filtres");
   var modale    = document.getElementById("modale");
-  var vitrine   = document.getElementById("vitrine");
+  var cats      = document.querySelectorAll(".cat");
 
   var filtreActif = "tous";
 
@@ -46,24 +46,26 @@
       ">" + (libelle || libelleAction(p)) + "</a>";
   }
 
-  /* ------------------------- la vitrine du haut --------------------------- */
-  function afficherVitrine() {
-    var p = PROJETS.filter(function (x) { return x.vedette; })[0] || PROJETS[0];
-    var i = PROJETS.indexOf(p);
+  /* ---------------------- les 4 cartes catégories ------------------------ */
+  // affiche "3 projets" / "Bientôt" sous chaque carte
+  function afficherComptes() {
+    Array.prototype.forEach.call(cats, function (carte) {
+      var n = PROJETS.filter(function (p) { return p.categorie === carte.dataset.filtre; }).length;
+      carte.querySelector(".cat-compte").textContent =
+        n === 0 ? "Bientôt" : n + (n > 1 ? " projets" : " projet");
+    });
+  }
 
-    vitrine.innerHTML =
-      '<div class="vitrine-fond" style="background:' + degrade(p) + '"></div>' +
-      '<div class="vitrine-inner">' +
-        '<span class="vitrine-etiquette">À la une</span>' +
-        '<div class="vitrine-emoji">' + p.emoji + "</div>" +
-        "<h1>" + p.titre + "</h1>" +
-        '<p class="vitrine-phrase">' + p.resume + "</p>" +
-        '<div class="tags">' + tagsHTML(p.tags) + "</div>" +
-        '<div class="actions">' +
-          lienHTML(p, "btn btn-primaire") +
-          '<button class="btn btn-fantome" type="button" data-details="' + i + '">En savoir plus</button>' +
-        "</div>" +
-      "</div>";
+  // un filtre choisi (par une carte ou un bouton) allume les deux
+  function choisir(filtre) {
+    filtreActif = filtre;
+    Array.prototype.forEach.call(filtres.children, function (c) {
+      c.classList.toggle("actif", c.dataset.filtre === filtre);
+    });
+    Array.prototype.forEach.call(cats, function (c) {
+      c.classList.toggle("actif", c.dataset.filtre === filtre);
+    });
+    afficher();
   }
 
   /* ------------------------------- les tuiles ----------------------------- */
@@ -95,10 +97,7 @@
     var q = sansAccents(recherche.value.trim());
 
     var liste = PROJETS.filter(function (p) {
-      var okFiltre =
-        filtreActif === "tous" ||
-        filtreActif === p.categorie ||
-        filtreActif === p.action;
+      var okFiltre = filtreActif === "tous" || filtreActif === p.categorie;
 
       var texte = sansAccents(p.titre + " " + p.resume + " " + (p.tags || []).join(" "));
       var okRecherche = q === "" || texte.indexOf(q) !== -1;
@@ -111,6 +110,9 @@
     }).join("");
 
     vide.hidden = liste.length > 0;
+    vide.textContent = q
+      ? "Aucun projet ne correspond à cette recherche."
+      : "Rien de publié ici pour l'instant… mais je peux t'en faire un, demande-moi !";
   }
 
   /* ------------------------------ la modale ------------------------------- */
@@ -169,15 +171,16 @@
 
   filtres.addEventListener("click", function (e) {
     var chip = e.target.closest(".chip");
-    if (!chip) return;
-    filtreActif = chip.dataset.filtre;
-    Array.prototype.forEach.call(filtres.children, function (c) {
-      c.classList.toggle("actif", c === chip);
-    });
-    afficher();
+    if (chip) choisir(chip.dataset.filtre);
   });
 
-  // les boutons "Détails" existent dans la grille ET dans la vitrine
+  Array.prototype.forEach.call(cats, function (carte) {
+    carte.addEventListener("click", function () {
+      choisir(carte.dataset.filtre);
+      document.getElementById("projets").scrollIntoView();
+    });
+  });
+
   document.addEventListener("click", function (e) {
     var btn = e.target.closest("[data-details]");
     if (btn) ouvrirModale(PROJETS[Number(btn.dataset.details)]);
@@ -193,6 +196,6 @@
 
   /* ------------------------------- démarrage ------------------------------ */
   document.getElementById("annee").textContent = new Date().getFullYear();
-  afficherVitrine();
+  afficherComptes();
   afficher();
 })();

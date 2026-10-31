@@ -13,12 +13,12 @@
      details     : le texte long (dans la fenêtre "Détails")
      emoji       : l'icône affichée sur la carte
      couleurs    : les 2 couleurs du dégradé de la carte
-     categorie   : "jeu" ou "outil"
+     categorie   : dans quelle carte il apparaît :
+                   "minecraft", "ia", "video", "web" ou "jeu"
      action      : "jouer"      -> bouton "Jouer / Ouvrir"
                    "telecharger"-> bouton "Télécharger"
      lien        : le chemin vers le projet (ou le fichier à télécharger)
      tags        : les petits libellés sous le titre
-     vedette     : true = grande carte mise en avant (1 seul conseillé)
      annee       : affichée dans les détails
      install     : (facultatif) encadré "Comment l'installer" dans les détails
      secondaire  : (facultatif) 2e bouton dans les détails, ex. la version
@@ -45,7 +45,6 @@ const PROJETS = [
     action: "telecharger",
     lien: "telechargements/Rentable-1.0-windows.zip?v=2",
     tags: ["Windows", "Idle narratif", "Godot", "38 Mo"],
-    vedette: true,
     annee: "2026",
     install:
       "Décompresse le zip, puis double-clique sur Rentable.exe — il n'y a rien à installer. " +
@@ -252,7 +251,7 @@ const PROJETS = [
       "un plan à ton équipe avant une game ou pour débriefer après.",
     emoji: "🗺️",
     couleurs: ["#0F766E", "#0EA5A5"],
-    categorie: "outil",
+    categorie: "web",
     action: "jouer",
     lien: "jeux/lol-coach-board/",
     tags: ["Navigateur", "League of Legends", "Outil"],
@@ -267,7 +266,7 @@ const PROJETS = [
       "n'arrive à se décider, ou pour se forcer à sortir de son pool habituel.",
     emoji: "🎲",
     couleurs: ["#B4237A", "#E01A76"],
-    categorie: "outil",
+    categorie: "web",
     action: "jouer",
     lien: "jeux/lol-random-picker/",
     tags: ["Navigateur", "League of Legends", "Fun"],
@@ -284,7 +283,7 @@ const PROJETS = [
       "navigateur, rien n'est envoyé nulle part.",
     emoji: "🧠",
     couleurs: ["#7C3AED", "#E01A76"],
-    categorie: "outil",
+    categorie: "web",
     action: "jouer",
     lien: "jeux/memoire/",
     tags: ["Navigateur", "Quotidien", "Mobile OK"],
@@ -302,7 +301,7 @@ const PROJETS = [
     details: "Mod Fabric pour Minecraft 1.20.1. Installe Fabric, puis mets le .jar dans ton dossier mods.",
     emoji: "🕶️",
     couleurs: ["#22B8CF", "#3B82F6"],
-    categorie: "outil",
+    categorie: "minecraft",
     action: "telecharger",
     lien: "telechargements/neovision-1.0.jar",
     tags: ["Minecraft 1.20.1", "Fabric", "Mod"],

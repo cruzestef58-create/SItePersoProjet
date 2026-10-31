@@ -14,9 +14,9 @@
 
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%23FF2D8E'/><text x='50' y='72' font-size='62' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold'>C</text></svg>">
 
-<!-- Le "?v=7" force les navigateurs a retelecharger le fichier au lieu d'utiliser
+<!-- Le "?v=10" force les navigateurs a retelecharger le fichier au lieu d'utiliser
      leur vieille copie en cache. Augmente le numero a chaque changement de design. -->
-<link rel="stylesheet" href="style.css?v=7">
+<link rel="stylesheet" href="style.css?v=10">
 </head>
 <body>
 
@@ -34,9 +34,96 @@
   </div>
 </header>
 
-<!-- ===================== VITRINE (projet vedette) ===================== -->
-<!-- Rempli par script.js a partir du projet qui a "vedette: true" -->
-<section class="vitrine" id="vitrine"></section>
+<!-- ===================== LES 4 CATÉGORIES ===================== -->
+<!-- Chaque petit dessin (.pop) sort du rond au survol. Sa position au repos
+     (--x0, --y0, --r0, --s0) et une fois sorti (--x1, --y1, --r1, --s1) se
+     règlent directement dans son style. Pour remplacer un dessin par une
+     autre image : remplace le .png du même nom dans assets/categories/. -->
+<section class="accueil">
+  <div class="wrap">
+    <p class="accueil-salut">Salut, moi c'est Cruz.</p>
+    <h1>Ce que je crée,<br>et ce que je peux te faire.</h1>
+
+    <div class="cats">
+      <button class="cat" type="button" data-filtre="minecraft" style="--c:#3DDC6A">
+        <span class="rond">
+          <img class="pop" src="assets/categories/minecraft-pioche.png" alt=""
+               style="--x0:-8px;--y0:-6px;--r0:-20deg;--s0:.75;--x1:-36px;--y1:-34px;--r1:-45deg;--s1:1.15">
+          <img class="pop" src="assets/categories/minecraft-bloc.png" alt=""
+               style="--x0:4px;--y0:4px;--x1:34px;--y1:-30px;--r1:12deg;--s1:1.1">
+        </span>
+        <span class="cat-texte">
+          <span class="cat-titre">Mods Minecraft</span>
+          <span class="cat-phrase">Des mods Fabric faits main : armes, outils, vision, survie.</span>
+          <span class="cat-propose"><b>Je propose</b> un mod sur mesure pour ton serveur ou ta map.</span>
+          <span class="cat-compte"></span>
+        </span>
+      </button>
+
+      <button class="cat" type="button" data-filtre="ia" style="--c:#FF6FBF">
+        <span class="rond">
+          <span class="rond-texte">IA</span>
+          <img class="pop" src="assets/categories/ia-etincelle.png" alt=""
+               style="--s0:0;--x1:38px;--y1:-34px;--r1:90deg;--s1:.8">
+          <img class="pop" src="assets/categories/ia-etincelle.png" alt=""
+               style="--s0:0;--x1:-40px;--y1:30px;--r1:-60deg;--s1:.5">
+          <img class="pop" src="assets/categories/ia-puce.png" alt=""
+               style="--s0:0;--x1:36px;--y1:32px;--r1:-12deg;--s1:.75">
+        </span>
+        <span class="cat-texte">
+          <span class="cat-titre">Intelligence artificielle</span>
+          <span class="cat-phrase">Des outils et des jeux où l'IA fait le gros du travail.</span>
+          <span class="cat-propose"><b>Je propose</b> un assistant, un bot Discord ou un outil IA pour ton projet.</span>
+          <span class="cat-compte"></span>
+        </span>
+      </button>
+
+      <button class="cat" type="button" data-filtre="video" style="--c:#7FD3FF">
+        <span class="rond">
+          <img class="pop" src="assets/categories/video-clap.png" alt=""
+               style="--x1:-14px;--y1:-36px;--r1:-14deg;--s1:1.2">
+          <img class="pop" src="assets/categories/video-souris.png" alt=""
+               style="--s0:0;--x1:38px;--y1:26px;--r1:18deg;--s1:.85">
+        </span>
+        <span class="cat-texte">
+          <span class="cat-titre">Montage vidéo</span>
+          <span class="cat-phrase">Edits gaming calés sur la musique, vidéos racontées, motion design.</span>
+          <span class="cat-propose"><b>Je propose</b> un edit de tes clips ou une vidéo YouTube montée.</span>
+          <span class="cat-compte"></span>
+        </span>
+      </button>
+
+      <button class="cat" type="button" data-filtre="web" style="--c:#FF9A4D">
+        <span class="rond">
+          <span class="rond-texte">www</span>
+          <img class="pop" src="assets/categories/web-fenetre.png" alt=""
+               style="--s0:0;--x1:-34px;--y1:-32px;--r1:-8deg;--s1:1.1">
+        </span>
+        <span class="cat-texte">
+          <span class="cat-titre">Sites web</span>
+          <span class="cat-phrase">Sites et outils qui tournent direct dans le navigateur, même ce site.</span>
+          <span class="cat-propose"><b>Je propose</b> ton site perso, une page pour ton serveur ou ton projet.</span>
+          <span class="cat-compte"></span>
+        </span>
+      </button>
+
+      <button class="cat cat-large" type="button" data-filtre="jeu" style="--c:#B9A2FF">
+        <span class="rond">
+          <img class="pop" src="assets/categories/jeu-manette.png" alt=""
+               style="--x0:0px;--y0:2px;--s0:1.05;--x1:-30px;--y1:-36px;--r1:-18deg;--s1:1.3">
+          <img class="pop" src="assets/categories/jeu-coeur.png" alt=""
+               style="--s0:0;--x1:38px;--y1:28px;--r1:12deg;--s1:.7">
+        </span>
+        <span class="cat-texte">
+          <span class="cat-titre">Jeux</span>
+          <span class="cat-phrase">Tous les jeux que j'ai créés : à jouer direct dans le navigateur ou à télécharger sur PC.</span>
+          <span class="cat-propose"><b>Je propose</b> un petit jeu sur mesure, pour toi, ton serveur ou tes potes.</span>
+          <span class="cat-compte"></span>
+        </span>
+      </button>
+    </div>
+  </div>
+</section>
 
 <!-- ===================== FILTRES ===================== -->
 <div class="wrap toolbar" id="projets">
@@ -48,10 +135,11 @@
     </div>
     <div class="chips" id="filtres" role="group" aria-label="Filtrer les projets">
       <button class="chip actif" data-filtre="tous" type="button">Tout</button>
-      <button class="chip" data-filtre="jouer" type="button">En ligne</button>
+      <button class="chip" data-filtre="minecraft" type="button">Minecraft</button>
+      <button class="chip" data-filtre="ia" type="button">IA</button>
+      <button class="chip" data-filtre="video" type="button">Vidéo</button>
+      <button class="chip" data-filtre="web" type="button">Web</button>
       <button class="chip" data-filtre="jeu" type="button">Jeux</button>
-      <button class="chip" data-filtre="outil" type="button">Outils</button>
-      <button class="chip" data-filtre="telecharger" type="button">À télécharger</button>
     </div>
   </div>
 </div>
@@ -59,7 +147,7 @@
 <!-- ===================== GRILLE DES PROJETS ===================== -->
 <main class="wrap">
   <div class="grille" id="grille"></div>
-  <p class="vide" id="vide" hidden>Aucun projet ne correspond à cette recherche.</p>
+  <p class="vide" id="vide" hidden></p>
 </main>
 
 <!-- ===================== À PROPOS ===================== -->
@@ -109,7 +197,7 @@
   </div>
 </div>
 
-<script src="projets.js?v=7"></script>
-<script src="script.js?v=7"></script>
+<script src="projets.js?v=10"></script>
+<script src="script.js?v=10"></script>
 </body>
 </html>
